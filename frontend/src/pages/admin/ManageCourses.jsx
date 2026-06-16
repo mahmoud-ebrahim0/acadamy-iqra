@@ -1,24 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 const ManageCourses = () => {
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState([
+    { _id: '1', title: 'Quran Memorization (Hifz) for Beginners', level: 'Beginner', description: 'A structured path to memorizing the Holy Quran.', price: 50, icon: '📖' },
+    { _id: '2', title: 'Advanced Tajweed Rules', level: 'Advanced', description: 'Master the rules of Tajweed with practical application.', price: 70, icon: '🎙️' },
+    { _id: '3', title: 'Arabic for Non-Native Speakers', level: 'Intermediate', description: 'Learn to read and understand the language of the Quran.', price: 60, icon: '🗣️' }
+  ]);
   const [newCourse, setNewCourse] = useState({ title: '', age: '', description: '', price: '', image: null });
 
-  const fetchCourses = () => {
-    fetch('http://localhost:5000/api/admin/courses')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setCourses(data);
-        } else {
-          setCourses([]);
-        }
-      })
-      .catch(err => console.error(err));
-  };
-
   useEffect(() => {
-    fetchCourses();
+    // Static data already loaded.
   }, []);
 
   const handleImageUpload = (e) => {
@@ -50,26 +41,17 @@ const ManageCourses = () => {
       console.log('Webhook call simulated (or failed due to dummy URL)', err);
     }
 
-    // 2. Send to local backend so it appears on the website instantly
-    fetch('http://localhost:5000/api/admin/courses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(courseData)
-    })
-    .then(res => res.json())
-    .then(() => {
-      fetchCourses(); // Refresh list
-      setNewCourse({ title: '', age: '', description: '', price: '', image: null }); // Reset form
-      alert('Course created successfully and sent to Webhook!');
-    });
+    // 2. Add to local state (Frontend Only)
+    const newId = Date.now().toString();
+    setCourses([...courses, { _id: newId, ...courseData }]);
+    setNewCourse({ title: '', age: '', description: '', price: '', image: null }); // Reset form
+    alert('Course created successfully! (Frontend Only Mode)');
   };
 
   const handleDeleteCourse = (id) => {
     if(window.confirm('Are you sure you want to delete this course?')) {
-      fetch(`http://localhost:5000/api/admin/courses/${id}`, {
-        method: 'DELETE'
-      })
-      .then(() => fetchCourses());
+      // Remove from local state (Frontend Only)
+      setCourses(courses.filter(c => c._id !== id));
     }
   };
 

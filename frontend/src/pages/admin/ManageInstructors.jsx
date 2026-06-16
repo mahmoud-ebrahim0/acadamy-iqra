@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
 const ManageInstructors = () => {
-  const [instructors, setInstructors] = useState([]);
+  const [instructors, setInstructors] = useState([
+    { _id: '1', name: 'Sheikh Abdullah Al-Masri', rank: 'Senior Qari', schedule: 'Mon, Wed, Fri (18:00 - 21:00)', attendance: 98, salary: '$1,500' },
+    { _id: '2', name: 'Ustadha Fatima Zahra', rank: 'Tajweed Specialist', schedule: 'Tue, Thu (10:00 - 14:00)', attendance: 100, salary: '$1,200' },
+    { _id: '3', name: 'Sheikh Omar Al-Faruq', rank: 'Hifz Master', schedule: 'Weekends (08:00 - 12:00)', attendance: 95, salary: '$1,800' }
+  ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // New Instructor Form State
@@ -13,21 +17,8 @@ const ManageInstructors = () => {
     salary: ''
   });
 
-  const fetchInstructors = () => {
-    fetch('http://localhost:5000/api/admin/instructors')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setInstructors(data);
-        } else {
-          setInstructors([]);
-        }
-      })
-      .catch(err => console.error(err));
-  };
-
   useEffect(() => {
-    fetchInstructors();
+    // Static data already loaded.
   }, []);
 
   const handleDownloadReport = () => {
@@ -64,18 +55,10 @@ const ManageInstructors = () => {
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    fetch('http://localhost:5000/api/admin/instructors', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newInstructor)
-    })
-    .then(res => res.json())
-    .then(() => {
-      fetchInstructors(); // Refresh the list
-      setIsModalOpen(false);
-      setNewInstructor({ name: '', rank: '', schedule: '', attendance: 100, salary: '' });
-    })
-    .catch(err => console.error(err));
+    const newId = Date.now().toString();
+    setInstructors([...instructors, { _id: newId, ...newInstructor }]);
+    setIsModalOpen(false);
+    setNewInstructor({ name: '', rank: '', schedule: '', attendance: 100, salary: '' });
   };
 
   return (
@@ -135,7 +118,7 @@ const ManageInstructors = () => {
                 <td style={{ padding: '1.5rem 1rem', color: 'var(--primary-color)', fontWeight: 'bold' }}>{inst.salary}</td>
                 <td style={{ padding: '1.5rem 1rem', textAlign: 'right' }}>
                   <button style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', marginRight: '1rem', fontWeight: 'bold' }}>Edit</button>
-                  <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}>Delete</button>
+                  <button onClick={() => setInstructors(instructors.filter(i => i._id !== inst._id))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}>Delete</button>
                 </td>
               </tr>
             ))}
