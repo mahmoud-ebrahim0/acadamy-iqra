@@ -17,55 +17,35 @@ const AuthPage = () => {
     setError('');
 
     try {
-      // 💡 1. Antigravity Webhook URL (Replace with your actual webhook)
-      const WEBHOOK_URL = isLogin 
-        ? 'https://hook.antigravity.io/catch/login-workflow'
-        : 'https://hook.antigravity.io/catch/register-workflow';
+      const API_URL = isLogin 
+        ? 'http://localhost:5000/api/client/login'
+        : 'http://localhost:5000/api/client/register';
       
       const payload = isLogin ? { email, password } : { name, email, password };
 
-      let data;
-      try {
-        // Attempt to send to Antigravity Webhook
-        const res = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        data = await res.json();
-      } catch (webhookError) {
-        // 💡 2. FALLBACK FOR LOCAL TESTING 
-        // (Since the webhook is a dummy, it will fail. We simulate a successful response here so you can test the UI).
-        console.warn("Webhook failed (expected if dummy URL), falling back to local simulation...");
-        
-        // Simulate Webhook Response based on email
-        const role = email.trim().toLowerCase() === 'admin@admin.com' ? 'admin' : 'student';
-        
-        // Give a tiny delay for realism
-        await new Promise(resolve => setTimeout(resolve, 800));
+      // Make actual request to our MongoDB-backed Express Server
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
 
-        if (role === 'admin' && password === 'admin123') {
-           data = { success: true, token: 'admin-token-123', role: 'admin', user: { name: 'Admin' } };
-        } else if (role === 'student' && password.length >= 6) {
-           data = { success: true, token: 'student-token-456', role: 'student', user: { name: name || 'Cosmic Explorer' } };
-        } else {
-           data = { success: false, message: 'Invalid email or password' };
-        }
-      }
-
-      // 💡 3. Role-based Routing & Session Storage
       if (data.success) {
         // Save unified user details if provided
         if (data.user?.name) {
           localStorage.setItem('userName', data.user.name);
         }
 
-        if (data.role === 'admin') {
-          // Admin Session Storage & Routing
+        // Currently, our User model might not send a specific role if not populated deeply, 
+        // but we assume if it works, and it's admin@admin.com it's admin for the demo.
+        // Or if the backend returns a role, we use it. 
+        const role = data.user?.role || (email.trim().toLowerCase() === 'admin@admin.com' ? 'admin' : 'student');
+
+        if (role === 'admin') {
           localStorage.setItem('adminToken', data.token);
           window.location.href = '/admin';
         } else {
-          // Student Session Storage & Routing
           localStorage.setItem('userToken', data.token);
           window.location.href = '/dashboard';
         }
@@ -73,7 +53,7 @@ const AuthPage = () => {
         setError(data.message || 'Authentication failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Connection to Antigravity Base lost. Try again.');
+      setError('Connection to backend lost. Make sure MongoDB and Server are running.');
     } finally {
       setLoading(false);
     }

@@ -68,7 +68,7 @@ const CoursesSection = () => {
           <>
             <div className="courses-grid">
               {coursesData.map(course => (
-                <div key={course.id} className="course-card">
+                <div key={course._id} className="course-card">
                   {/* If the course has an imageUrl, show it. Otherwise fallback to icon */}
                   {course.imageUrl ? (
                     <div style={{ height: '200px', backgroundImage: `url(${course.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: '1px solid rgba(250, 204, 21, 0.2)' }}></div>
@@ -77,12 +77,12 @@ const CoursesSection = () => {
                   )}
                   
                   <div className="course-content">
-                    <span className="course-age">{course.age}</span>
+                    <span className="course-age">{course.level}</span>
                     <h3 className="course-title">{course.title}</h3>
                     {course.description ? (
                       <p style={{marginBottom: '1rem', color: '#cbd5e1', fontSize: '0.95rem'}}>{course.description.length > 80 ? course.description.substring(0, 80) + '...' : course.description}</p>
                     ) : (
-                      <p style={{marginBottom: '1rem', color: '#cbd5e1'}}>{course.category} Course</p>
+                      <p style={{marginBottom: '1rem', color: '#cbd5e1'}}>Course</p>
                     )}
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem' }}>
