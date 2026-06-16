@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([
@@ -7,10 +7,6 @@ const ManageCourses = () => {
     { _id: '3', title: 'Arabic for Non-Native Speakers', level: 'Intermediate', description: 'Learn to read and understand the language of the Quran.', price: 60, icon: '🗣️' }
   ]);
   const [newCourse, setNewCourse] = useState({ title: '', age: '', description: '', price: '', image: null });
-
-  useEffect(() => {
-    // Static data already loaded.
-  }, []);
 
   const handleImageUpload = (e) => {
     // In a real app, this file is sent to S3/Cloudinary to get a URL

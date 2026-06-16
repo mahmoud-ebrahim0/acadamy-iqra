@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 const DashboardOverview = () => {
-  const [stats, setStats] = useState({ totalCourses: 12, totalInstructors: 8, totalStudents: 1450 });
-  const [enrollments, setEnrollments] = useState([
+  const [stats] = useState({ totalCourses: 12, totalInstructors: 8, totalStudents: 1450 });
+  const [enrollments] = useState([
     { _id: '1', student: { name: 'Ahmed Ali' }, course: { title: 'Quran Memorization (Hifz)' }, paymentStatus: 'Paid' },
     { _id: '2', student: { name: 'Sarah Hassan' }, course: { title: 'Advanced Tajweed' }, paymentStatus: 'Paid' },
     { _id: '3', student: { name: 'Omar Youssef' }, course: { title: 'Islamic Studies' }, paymentStatus: 'Pending' },
     { _id: '4', student: { name: 'Fatima Noor' }, course: { title: 'Arabic for Non-Natives' }, paymentStatus: 'Paid' }
   ]);
-
-  useEffect(() => {
-    // Static data is already loaded in state.
-  }, []);
 
   return (
     <div>
