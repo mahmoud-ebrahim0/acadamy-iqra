@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WC 2026 CYBER_PITCH</title>
+    
+    <!-- Error Catcher -->
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            document.body.innerHTML += '<div style="color:#ff003c; padding:20px; font-family:monospace; z-index:9999; position:fixed; top:0; left:0; width:100%; background:rgba(0,0,0,0.9); border-bottom:2px solid #ff003c;">CRITICAL ERROR: ' + msg + '</div>';
+            return false;
+        };
+    </script>
+    
+    <!-- Import Maps for React -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18",
+            "react-dom/client": "https://esm.sh/react-dom@18/client",
+            "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime"
+        }
+    }
+    </script>
+    
+    <!-- Babel for compiling JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Orbitron (Display) & Rajdhani (Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Reset & Variables */
+        :root {
+            --neon-green: #39ff14;
+            --cyber-cyan: #00f3ff;
+            --laser-red: #ff003c;
+            --obsidian: #050505;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, h4, .display-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Scanlines Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* CRT Noise Overlay */
+        .crt-noise {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* Custom Selection */
+        ::selection {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        /* Animations */
+        @keyframes shoot {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            70% { transform: translate(-100px, -75px) scale(0.5); opacity: 0.8; }
+            100% { transform: translate(-200px, -150px) scale(0.2); opacity: 0; }
+        }
+
+        @keyframes glitch {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(60% 0 20% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(50% 0 40% 0); transform: translate(2px, -2px); }
+        }
+
+        .glitch-effect {
+            position: relative;
+        }
+        .glitch-effect::before, .glitch-effect::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--obsidian);
+        }
+        .glitch-effect::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--laser-red);
+            animation: glitch 3s infinite linear alternate-reverse;
+        }
+        .glitch-effect::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--cyber-cyan);
+            animation: glitch 2s infinite linear alternate-reverse;
+        }
+
+        /* Polygon Clip Paths for Asymmetry */
+        .clip-diagonal {
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+        }
+        .clip-card {
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 90% 100%, 0 100%);
+        }
+        .clip-terminal {
+            clip-path: polygon(5% 0, 100% 0, 100% 95%, 95% 100%, 0 100%, 0 5%);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--neon-green); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-green); }
+
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="crt-noise"></div>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+
+        // --- Mock World Cup Data ---
+        const liveMatches = [
+            { id: 1, team1: 'BRA', team2: 'FRA', score: '2 - 1', time: '78\'', status: 'LIVE' },
+            { id: 2, team1: 'USA', team2: 'MEX', score: '0 - 0', time: '22\'', status: 'LIVE' },
+            { id: 3, team1: 'ARG', team2: 'GER', score: '0 - 0', time: '0\'', status: 'KICKOFF 20:00' }
+        ];
+
+        const groups = [
+            {
+                name: 'GROUP A',
+                teams: [
+                    { name: 'Brazil', pts: 9, gd: '+5' },
+                    { name: 'Senegal', pts: 6, gd: '+1' },
+                    { name: 'Japan', pts: 3, gd: '-2' },
+                    { name: 'Canada', pts: 0, gd: '-4' }
+                ]
+            },
+            {
+                name: 'GROUP B',
+                teams: [
+                    { name: 'France', pts: 7, gd: '+6' },
+                    { name: 'USA', pts: 5, gd: '+2' },
+                    { name: 'Morocco', pts: 4, gd: '0' },
+                    { name: 'Australia', pts: 0, gd: '-8' }
+                ]
+            }
+        ];
+
+        const topScorers = [
+            { rank: 1, name: 'Vini Jr', team: 'BRA', goals: 6, assists: 2 },
+            { rank: 2, name: 'K. Mbappe', team: 'FRA', goals: 5, assists: 1 },
+            { rank: 3, name: 'C. Pulisic', team: 'USA', goals: 4, assists: 3 },
+            { rank: 4, name: 'J. Bellingham', team: 'ENG', goals: 3, assists: 4 }
+        ];
+
+        // --- Components ---
+
+        const Navbar = () => (
+            <nav className="fixed top-0 w-full z-50 border-b border-[#39ff14]/20 bg-black/50 backdrop-blur-md">
+                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="text-2xl font-black display-font text-white flex items-center gap-2">
+                        <div className="w-4 h-4 bg-[#39ff14] animate-pulse"></div>
+                        WC<span className="text-[#39ff14]">2026</span>
+                    </div>
+                    <div className="hidden md:flex gap-8 font-bold text-sm tracking-widest text-gray-400">
+                        <a href="#live" className="hover:text-[#00f3ff] transition-colors">LIVE.PITCH</a>
+                        <a href="#groups" className="hover:text-[#39ff14] transition-colors">SYS.BRACKET</a>
+                        <a href="#stats" className="hover:text-[#ff003c] transition-colors">DATA.HUD</a>
+                    </div>
+                    <button className="clip-diagonal bg-[#39ff14] text-black px-6 py-2 font-bold hover:bg-white transition-colors">
+                        INITIATE
+                    </button>
+                </div>
+            </nav>
+        );
+
+        const Hero = () => {
+            const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+            useEffect(() => {
+                const handleMouseMove = (e) => {
+                    setMousePos({
+                        x: (e.clientX / window.innerWidth) * 20 - 10,
+                        y: (e.clientY / window.innerHeight) * 20 - 10,
+                    });
+                };
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
+
+            return (
+                <section className="relative min-h-screen pt-20 flex flex-col lg:flex-row items-center overflow-hidden border-b border-[#39ff14]/30">
+                    <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#39ff14] rounded-full mix-blend-screen filter blur-[150px] opacity-10 animate-pulse"></div>
+                    <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#00f3ff] rounded-full mix-blend-screen filter blur-[150px] opacity-10"></div>
+
+                    <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center justify-between relative z-10 w-full h-full">
+                        
+                        <div className="lg:w-1/2 mt-10 lg:mt-0 relative" style={{ transform: `translate(${mousePos.x * -1}px, ${mousePos.y * -1}px)` }}>
+                            <div className="inline-block px-3 py-1 mb-6 border border-[#39ff14] text-[#39ff14] text-xs font-mono tracking-[0.3em] uppercase bg-[#39ff14]/10 backdrop-blur-sm">
+                                System Online // V. 2026.1
+                            </div>
+                            
+                            <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black uppercase leading-[0.85] tracking-tighter mb-8 display-font" style={{ textShadow: '4px 4px 0px rgba(57,255,20,0.3)' }}>
+                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 glitch-effect" data-text="GOAL:">GOAL:</span>
+                                <span className="block text-[#39ff14]">NEXT GEN</span>
+                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-700 italic pr-8">FOOTBALL.</span>
+                            </h1>
+
+                            <p className="text-gray-400 text-lg max-w-md font-medium mb-12 border-l-4 border-[#39ff14] pl-4">
+                                Experience the raw energy of tomorrow's pitch. No rules. Just pure voltage and kinetic power. Track the World Cup in cyber-time.
+                            </p>
+
+                            <div className="flex flex-wrap gap-6">
+                                <a href="#live" className="clip-diagonal relative group px-10 py-4 bg-white/5 backdrop-blur-md border border-[#39ff14] text-white font-bold tracking-wider uppercase overflow-hidden hover:shadow-[0_0_20px_rgba(57,255,20,0.6)] transition-all">
+                                    <span className="absolute inset-0 w-0 bg-[#39ff14] transition-all duration-300 ease-out group-hover:w-full"></span>
+                                    <span className="relative z-10 group-hover:text-black">Enter The Pitch</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className="lg:w-1/2 h-full flex items-center justify-center relative mt-20 lg:mt-0 lg:-mr-20 pointer-events-none" style={{ transform: `translate(${mousePos.x * 2}px, ${mousePos.y * 2}px)` }}>
+                            <div className="absolute top-0 right-10 w-32 h-32 border-t-2 border-r-2 border-[#39ff14]/30"></div>
+                            <div className="absolute bottom-10 left-0 w-24 h-24 border-b-2 border-l-2 border-[#00f3ff]/30"></div>
+
+                            <div className="relative z-10 w-[120%] lg:w-[140%] max-w-none transform -translate-y-10 lg:translate-x-10">
+                                <img src="./cyberpunk_player.png" alt="Cyberpunk Striker" className="w-full h-auto object-contain drop-shadow-[0_0_30px_rgba(57,255,20,0.2)]" />
+                                
+                                <div className="absolute top-[60%] left-[20%] w-8 h-8 md:w-12 md:h-12 bg-white rounded-full shadow-[0_0_40px_20px_#39ff14] animate-[shoot_2s_ease-out_infinite]">
+                                    <div className="absolute inset-0 rounded-full border-4 border-[#39ff14] animate-spin"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const LiveMatches = () => (
+            <section id="live" className="py-24 relative overflow-hidden bg-gradient-to-b from-black to-[#0a0a0a]">
+                <div className="container mx-auto px-6">
+                    <div className="flex items-end gap-4 mb-16">
+                        <h2 className="text-5xl md:text-7xl font-black display-font text-white">LIVE<span className="text-[#ff003c]">.PITCH</span></h2>
+                        <div className="h-1 flex-1 bg-gradient-to-r from-[#ff003c] to-transparent mb-4"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {liveMatches.map((match, idx) => (
+                            <div key={match.id} className="clip-card relative bg-[#111] border border-gray-800 p-8 hover:border-[#00f3ff] transition-colors group">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-[#00f3ff]/5 group-hover:bg-[#00f3ff]/20 transition-colors"></div>
+                                <div className="flex justify-between items-center mb-6">
+                                    <span className="text-[#00f3ff] text-sm font-mono font-bold tracking-widest flex items-center gap-2">
+                                        {match.status === 'LIVE' && <span className="w-2 h-2 rounded-full bg-[#ff003c] animate-ping"></span>}
+                                        {match.status}
+                                    </span>
+                                    <span className="text-gray-500 font-mono text-sm">ID:{match.id}00X</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-center">
+                                        <div className="text-3xl display-font font-bold">{match.team1}</div>
+                                    </div>
+                                    <div className="text-center px-4">
+                                        <div className="text-4xl font-black text-[#39ff14] bg-[#39ff14]/10 py-2 px-6 border border-[#39ff14]/30">{match.score}</div>
+                                        <div className="text-sm text-gray-400 mt-2 font-mono">{match.time}</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl display-font font-bold">{match.team2}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        const GroupsTerminal = () => (
+            <section id="groups" className="py-24 relative bg-[#050505]">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-col md:flex-row gap-12">
+                        
+                        <div className="w-full md:w-1/3">
+                            <h2 className="text-5xl md:text-7xl font-black display-font text-white mb-6">SYS<span className="text-[#39ff14]">.BRACKET</span></h2>
+                            <p className="text-gray-400 font-mono mb-8 border-l-2 border-gray-700 pl-4">
+                                Data stream intercepted from official FIFA mainframes. Standings updated in real-time via sub-ether relay.
+                            </p>
+                            <div className="w-24 h-24 border-2 border-[#39ff14] border-dashed rounded-full flex items-center justify-center animate-spin" style={{ animationDuration: '10s' }}>
+                                <div className="w-16 h-16 border border-[#00f3ff] rounded-full flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-[#ff003c] rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {groups.map((group, idx) => (
+                                <div key={idx} className="clip-terminal border border-[#39ff14]/40 bg-[#0a0a0a] p-1">
+                                    <div className="bg-[#111] p-6 h-full">
+                                        <h3 className="text-2xl font-bold display-font text-[#39ff14] border-b border-gray-800 pb-4 mb-4 flex justify-between">
+                                            {group.name}
+                                            <span className="text-xs text-gray-600 font-mono">SEC_0{idx+1}</span>
+                                        </h3>
+                                        <table className="w-full text-left font-mono text-sm">
+                                            <thead>
+                                                <tr className="text-gray-500">
+                                                    <th className="pb-4">TEAM</th>
+                                                    <th className="pb-4 text-center">PTS</th>
+                                                    <th className="pb-4 text-right">GD</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {group.teams.map((team, i) => (
+                                                    <tr key={i} className={`border-b border-gray-800 hover:bg-white/5 transition-colors ${i < 2 ? 'text-white' : 'text-gray-500'}`}>
+                                                        <td className="py-3 flex items-center gap-2">
+                                                            <span className="text-[#00f3ff] text-xs">0{i+1}</span> {team.name}
+                                                        </td>
+                                                        <td className="py-3 text-center font-bold text-[#39ff14]">{team.pts}</td>
+                                                        <td className="py-3 text-right">{team.gd}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const StatsHUD = () => (
+            <section id="stats" className="py-24 relative overflow-hidden bg-black border-t border-gray-900">
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #00f3ff 0%, transparent 50%)' }}></div>
+                
+                <div className="container mx-auto px-6 relative z-10">
+                    <h2 className="text-5xl md:text-7xl font-black display-font text-white mb-16 text-center">DATA<span className="text-[#00f3ff]">.HUD</span></h2>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                        {topScorers.map((player) => (
+                            <div key={player.rank} className="relative group bg-[#0a0a0a] border border-gray-800 overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#00f3ff] to-[#39ff14] transform -translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                                
+                                <div className="p-8">
+                                    <div className="flex justify-between items-start mb-8">
+                                        <div className="text-5xl font-black display-font text-transparent stroke-text" style={{ WebkitTextStroke: '1px #333' }}>
+                                            #{player.rank}
+                                        </div>
+                                        <div className="text-xs font-mono bg-[#111] px-2 py-1 text-gray-400 border border-gray-700">
+                                            {player.team}
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 className="text-2xl font-bold mb-6 text-white group-hover:text-[#00f3ff] transition-colors">{player.name}</h3>
+                                    
+                                    <div className="flex gap-4 font-mono text-sm">
+                                        <div className="bg-[#111] p-3 flex-1 border border-gray-800 text-center">
+                                            <div className="text-gray-500 mb-1">GOALS</div>
+                                            <div className="text-xl text-[#39ff14] font-bold">{player.goals}</div>
+                                        </div>
+                                        <div className="bg-[#111] p-3 flex-1 border border-gray-800 text-center">
+                                            <div className="text-gray-500 mb-1">AST</div>
+                                            <div className="text-xl text-white font-bold">{player.assists}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        const Footer = () => (
+            <footer className="border-t border-[#39ff14]/20 bg-[#050505] py-8">
+                <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center font-mono text-sm text-gray-500">
+                    <div>© 2026 CYBER_PITCH // DESIGNED FOR THE FUTURE</div>
+                    <div className="flex gap-4 mt-4 md:mt-0">
+                        <span className="hover:text-[#39ff14] cursor-pointer transition-colors">SYS.STATUS: ONLINE</span>
+                        <span>//</span>
+                        <span className="hover:text-[#00f3ff] cursor-pointer transition-colors">NETWORK: ENCRYPTED</span>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        const App = () => {
+            return (
+                <div className="app-wrapper relative">
+                    <Navbar />
+                    <Hero />
+                    <LiveMatches />
+                    <GroupsTerminal />
+                    <StatsHUD />
+                    <Footer />
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
