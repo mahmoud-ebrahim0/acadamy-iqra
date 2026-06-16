@@ -29,8 +29,8 @@ app.get('/', (req, res) => {
 // For local development, we'll connect if MONGO_URI is provided or try local
 const connectDB = async () => {
     try {
-        // Fallback to local DB if no URI in .env
-        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/quran_academy');
+        // Fallback to local DB if no URI in .env, using port 27018 to avoid conflicts
+        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/quran_academy');
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
         console.error(`Database Connection Error: ${error.message}`);

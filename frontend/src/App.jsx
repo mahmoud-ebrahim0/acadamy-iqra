@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ClientHome from './pages/client/ClientHome';
 import AuthPage from './pages/client/AuthPage';
+import Checkout from './pages/client/Checkout';
 import StudentDashboard from './pages/client/StudentDashboard';
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/home" element={<ClientHome />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
+          <Route path="/checkout/:courseId" element={<Checkout />} />
           <Route path="/dashboard" element={<UserProtectedRoute><StudentDashboard /></UserProtectedRoute>} />
           
           {/* Instructor Routes */}

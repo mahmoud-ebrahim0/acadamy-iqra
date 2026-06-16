@@ -15,8 +15,14 @@ const DashboardOverview = () => {
     // First we need to add this endpoint to adminRoutes.js, let's assume it exists as /api/admin/enrollments
     fetch('http://localhost:5000/api/admin/enrollments')
       .then(res => res.json())
-      .then(data => setEnrollments(data))
-      .catch(err => console.error("Could not fetch enrollments (maybe endpoint doesn't exist yet)", err));
+      .then(data => {
+        if (Array.isArray(data)) {
+          setEnrollments(data);
+        } else {
+          setEnrollments([]);
+        }
+      })
+      .catch(err => console.error("Could not fetch enrollments", err));
   }, []);
 
   return (

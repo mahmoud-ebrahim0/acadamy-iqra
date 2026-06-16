@@ -2,6 +2,7 @@ import express from 'express';
 import Course from '../models/Course.js';
 import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
+import Enrollment from '../models/Enrollment.js';
 
 const router = express.Router();
 
@@ -61,6 +62,39 @@ router.post('/login', async (req, res) => {
         } else {
             res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Checkout Endpoint: Registers user and creates pending enrollment
+router.post('/checkout', async (req, res) => {
+    try {
+        const { name, email, password, age, whatsapp, level, courseId, paymentMethod } = req.body;
+        
+        // 1. Find or create user
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = new User({ name, email, password, role: 'student' });
+            await user.save();
+        }
+
+        // 2. We need an instructor for the enrollment. For now, assign the first instructor found, or leave null if none.
+        // Or we can find an instructor whose rank matches the course level, but let's just pick one.
+        const instructor = await Instructor.findOne() || null;
+
+        // 3. Create Enrollment
+        const newEnrollment = new Enrollment({
+            student: user._id,
+            course: courseId,
+            instructor: instructor ? instructor._id : null,
+            status: 'Pending',
+            paymentStatus: paymentMethod === 'Credit Card' ? 'Paid' : 'Pending'
+        });
+        await newEnrollment.save();
+
+        const token = `user-token-${user._id}`;
+        res.status(201).json({ success: true, token, user: { _id: user._id, name: user.name, email: user.email } });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

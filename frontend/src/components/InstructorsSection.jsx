@@ -8,7 +8,14 @@ const InstructorsSection = () => {
     // Fetch from real Mongoose Backend
     fetch('http://localhost:5000/api/client/instructors')
       .then(res => res.json())
-      .then(data => setInstructors(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setInstructors(data);
+        } else {
+          console.error("Expected array but got:", data);
+          setInstructors([]);
+        }
+      })
       .catch(err => console.error("Error fetching instructors:", err));
   }, []);
   
@@ -33,15 +40,23 @@ const InstructorsSection = () => {
 
   // Dynamically assign an image based on the instructor's name/title
   const getFallbackImage = (name) => {
-    if (name.toLowerCase().includes('ustazah') || name.toLowerCase().includes('female')) {
+    const safeName = name || '';
+    if (safeName.toLowerCase().includes('ustazah') || safeName.toLowerCase().includes('female')) {
       return '/niqab.png';
     }
     return '/sheikh.png'; // Default
   };
 
   // Split instructors into two tiers based on rank (just to match the old UI logic)
-  const seniorInstructors = instructors.filter(inst => inst.rank.toLowerCase().includes('senior') || inst.rank.toLowerCase().includes('qari') || inst.rank.toLowerCase().includes('specialist'));
-  const tajweedInstructors = instructors.filter(inst => !inst.rank.toLowerCase().includes('senior') && !inst.rank.toLowerCase().includes('qari') && !inst.rank.toLowerCase().includes('specialist'));
+  const safeInstructors = Array.isArray(instructors) ? instructors : [];
+  const seniorInstructors = safeInstructors.filter(inst => {
+    const rank = inst.rank || '';
+    return rank.toLowerCase().includes('senior') || rank.toLowerCase().includes('qari') || rank.toLowerCase().includes('specialist');
+  });
+  const tajweedInstructors = safeInstructors.filter(inst => {
+    const rank = inst.rank || '';
+    return !rank.toLowerCase().includes('senior') && !rank.toLowerCase().includes('qari') && !rank.toLowerCase().includes('specialist');
+  });
 
   return (
     <section className="section instructors" style={{ position: 'relative', overflow: 'hidden' }}>

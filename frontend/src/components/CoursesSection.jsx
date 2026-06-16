@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CoursesSection = () => {
+  const navigate = useNavigate();
   const [coursesData, setCoursesData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,7 +20,12 @@ const CoursesSection = () => {
         if (!response.ok) throw new Error('Failed to fetch courses from the cosmic database');
         
         const data = await response.json();
-        setCoursesData(data);
+        if (Array.isArray(data)) {
+          setCoursesData(data);
+        } else {
+          console.error("Expected array but got:", data);
+          setCoursesData([]);
+        }
         setError(null);
       } catch (err) {
         console.error('API Error:', err);
@@ -67,7 +74,7 @@ const CoursesSection = () => {
         {!isLoading && !error && (
           <>
             <div className="courses-grid">
-              {coursesData.map(course => (
+              {Array.isArray(coursesData) && coursesData.map(course => (
                 <div key={course._id} className="course-card">
                   {/* If the course has an imageUrl, show it. Otherwise fallback to icon */}
                   {course.imageUrl ? (
@@ -89,7 +96,7 @@ const CoursesSection = () => {
                       <span style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.3rem', textShadow: '0 0 10px rgba(250, 204, 21, 0.4)' }}>
                         {course.price ? `$${course.price}` : 'Free'}
                       </span>
-                      <button className="btn" style={{ padding: '0.5rem 1.5rem' }}>Enroll Now</button>
+                      <button onClick={() => navigate(`/checkout/${course._id}`, { state: { course } })} className="btn" style={{ padding: '0.5rem 1.5rem' }}>Enroll Now</button>
                     </div>
                   </div>
                 </div>

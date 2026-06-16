@@ -16,7 +16,13 @@ const ManageInstructors = () => {
   const fetchInstructors = () => {
     fetch('http://localhost:5000/api/admin/instructors')
       .then(res => res.json())
-      .then(data => setInstructors(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setInstructors(data);
+        } else {
+          setInstructors([]);
+        }
+      })
       .catch(err => console.error(err));
   };
 
