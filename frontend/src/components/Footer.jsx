@@ -7,27 +7,27 @@ const Footer = () => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-col">
-            <h3>أكاديمية اقرأ</h3>
-            <p style={{ opacity: 0.8 }}>نساعد الآباء والأمهات في تنشئة أطفالهم وتربيتهم على المنهاج الإسلامي واللغة العربية السليمة.</p>
+            <h3>Iqra Academy</h3>
+            <p style={{ opacity: 0.8 }}>We help parents raise their children on the Islamic curriculum and proper Arabic language.</p>
           </div>
           <div className="footer-col">
-            <h3>روابط سريعة</h3>
+            <h3>Quick Links</h3>
             <ul className="footer-links">
-              <li><Link to="/courses">قائمة الدورات</Link></li>
-              <li><Link to="/instructors">المعلمين</Link></li>
-              <li><Link to="/about">عن الأكاديمية</Link></li>
+              <li><Link to="/courses">Courses List</Link></li>
+              <li><Link to="/instructors">Instructors</Link></li>
+              <li><Link to="/about">About Academy</Link></li>
             </ul>
           </div>
           <div className="footer-col">
-            <h3>السياسات</h3>
+            <h3>Policies</h3>
             <ul className="footer-links">
-              <li><Link to="/terms">الشروط والأحكام</Link></li>
-              <li><Link to="/privacy">سياسة الخصوصية</Link></li>
-              <li><Link to="/refund">سياسة الاسترجاع</Link></li>
+              <li><Link to="/terms">Terms & Conditions</Link></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/refund">Refund Policy</Link></li>
             </ul>
           </div>
           <div className="footer-col">
-            <h3>تواصل معنا</h3>
+            <h3>Contact Us</h3>
             <ul className="footer-links">
               <li><a href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a></li>
               <li><a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
@@ -36,7 +36,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} أكاديمية اقرأ التعليمية. جميع الحقوق محفوظة.</p>
+          <p>© {new Date().getFullYear()} Iqra Educational Academy. All rights reserved.</p>
         </div>
       </div>
     </footer>
