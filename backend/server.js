@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import adminRoutes from './routes/adminRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import instructorRoutes from './routes/instructorRoutes.js';
 
 dotenv.config();
 
@@ -14,6 +16,8 @@ app.use(express.json());
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/client', clientRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/instructor', instructorRoutes);
 
 const PORT = process.env.PORT || 5000;
 

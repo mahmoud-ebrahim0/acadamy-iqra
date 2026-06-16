@@ -1,53 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const dummyClasses = [
-  { id: 1, studentName: 'Ahmad M.', time: '10:00 AM', course: 'Tajweed Foundation', status: 'upcoming' },
-  { id: 2, studentName: 'Sara Y.', time: '11:30 AM', course: 'Memorization (Hifz)', status: 'live' },
-  { id: 3, studentName: 'Omar K.', time: '02:00 PM', course: 'Arabic Language', status: 'upcoming' },
-];
-
-const initialStudents = [
-  { id: 1, name: 'Ahmad M.', level: 'Beginner', progress: 'Surah Al-Mulk, Ayah 15', attendance: 'Present' },
-  { id: 2, name: 'Sara Y.', level: 'Advanced', progress: 'Juz Amma Revision', attendance: 'Present' },
-  { id: 3, name: 'Omar K.', level: 'Intermediate', progress: 'Surah Al-Kahf, Ayah 1', attendance: 'Absent' },
-];
-
-const initialPayouts = [
-  { id: '#INV-001', date: '2026-05-01', amount: '$450.00', status: 'Paid', method: 'PayPal' },
-  { id: '#INV-002', date: '2026-06-01', amount: '$520.00', status: 'Pending', method: 'Vodafone Cash' }
-];
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, schedule, students, wallet
   
-  const [students, setStudents] = useState(initialStudents);
-  const [payouts, setPayouts] = useState(initialPayouts);
-  const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
+  // Real data state
+  const [schedule, setSchedule] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [payouts, setPayouts] = useState([]);
   
-  // Payout Form State
+  const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [payoutReq, setPayoutReq] = useState({ amount: '', method: 'Vodafone Cash', details: '' });
 
+  // Assume instructor is assigned this ID or we get it from JWT/Auth
+  // For demo, we hardcode an assumption, or if there is no login, we just leave it empty.
+  // Ideally, instructor ID would be saved in local storage upon their login.
+  const instructorId = localStorage.getItem('userId') || 'demo-instructor-id';
+
+  const fetchDashboardData = () => {
+    fetch(`http://localhost:5000/api/instructor/dashboard?instructorId=${instructorId}`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.schedule) setSchedule(data.schedule);
+        if(data.students) setStudents(data.students);
+        if(data.payouts) setPayouts(data.payouts);
+      })
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    if (instructorId) {
+      fetchDashboardData();
+    }
+  }, [instructorId]);
+
   const handleLogout = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userId');
     navigate('/home');
   };
 
-  const handleProgressChange = (id, newProgress) => {
-    setStudents(students.map(s => s.id === id ? { ...s, progress: newProgress } : s));
+  // Student progress tracker updates DB
+  const handleProgressChange = (enrollmentId, newProgress) => {
+    // Update locally for quick UI feedback
+    setStudents(students.map(s => s._id === enrollmentId ? { ...s, currentAyahOrLesson: newProgress } : s));
+    
+    // Update backend
+    fetch(`http://localhost:5000/api/instructor/progress/${enrollmentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentAyahOrLesson: newProgress })
+    }).catch(err => console.error("Failed to update progress:", err));
   };
 
-  const handleAttendanceChange = (id, status) => {
-    setStudents(students.map(s => s.id === id ? { ...s, attendance: status } : s));
+  const handleAttendanceChange = (enrollmentId, status) => {
+    // We are hacking attendance as a local state or string for this demo since we didn't build a full daily attendance schema
+    setStudents(students.map(s => s._id === enrollmentId ? { ...s, tempAttendance: status } : s));
   };
 
   const handlePayoutSubmit = (e) => {
     e.preventDefault();
-    const newId = `#INV-00${payouts.length + 1}`;
-    const date = new Date().toISOString().split('T')[0];
-    setPayouts([{ id: newId, date, amount: `$${payoutReq.amount}.00`, status: 'Pending', method: payoutReq.method }, ...payouts]);
-    setIsPayoutModalOpen(false);
-    setPayoutReq({ amount: '', method: 'Vodafone Cash', details: '' });
+    
+    const payoutData = {
+      instructor: instructorId,
+      invoiceId: `#INV-${Math.floor(Math.random()*10000)}`,
+      amount: `$${payoutReq.amount}.00`,
+      method: payoutReq.method,
+      details: payoutReq.details,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    fetch('http://localhost:5000/api/instructor/payouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payoutData)
+    })
+    .then(res => res.json())
+    .then(() => {
+      fetchDashboardData();
+      setIsPayoutModalOpen(false);
+      setPayoutReq({ amount: '', method: 'Vodafone Cash', details: '' });
+    });
   };
 
   const SidebarLink = ({ id, icon, label }) => (
@@ -89,7 +123,7 @@ const InstructorDashboard = () => {
       <div className="admin-content">
         <header style={{ marginBottom: '3rem' }}>
           <h1 style={{ fontSize: '2.5rem', color: 'var(--primary-color)', fontFamily: 'var(--font-heading)' }}>
-            {activeTab === 'dashboard' && 'Welcome back, Sheikh Ali'}
+            {activeTab === 'dashboard' && 'Welcome back, Instructor'}
             {activeTab === 'schedule' && "Today's Schedule"}
             {activeTab === 'students' && 'Student Progress Tracker'}
             {activeTab === 'wallet' && 'Wallet & Balance'}
@@ -108,17 +142,14 @@ const InstructorDashboard = () => {
             <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Total Teaching Hours</h3>
               <div style={{ fontSize: '3.5rem', color: 'var(--primary-color)', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>45h</div>
-              <p style={{ color: 'var(--accent-color)', marginTop: '0.5rem', fontSize: '0.9rem' }}>+5h this week</p>
             </div>
             <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Active Students</h3>
-              <div style={{ fontSize: '3.5rem', color: 'var(--accent-color)', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>12</div>
-              <p style={{ color: 'var(--primary-color)', marginTop: '0.5rem', fontSize: '0.9rem' }}>2 new students assigned</p>
+              <div style={{ fontSize: '3.5rem', color: 'var(--accent-color)', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{students.length}</div>
             </div>
             <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Upcoming Classes</h3>
-              <div style={{ fontSize: '3.5rem', color: '#10b981', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>3</div>
-              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '0.9rem' }}>Next class in 15 mins</p>
+              <div style={{ fontSize: '3.5rem', color: '#10b981', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{schedule.length}</div>
             </div>
           </div>
         )}
@@ -126,23 +157,23 @@ const InstructorDashboard = () => {
         {/* --- VIEW: SCHEDULE --- */}
         {activeTab === 'schedule' && (
           <div style={{ display: 'grid', gap: '1.5rem' }}>
-            {dummyClasses.map(cls => (
-              <div key={cls.id} style={{ 
+            {schedule.length > 0 ? schedule.map(cls => (
+              <div key={cls._id} style={{ 
                 background: 'var(--card-bg)', padding: '1.5rem 2rem', borderRadius: '1rem', 
                 border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
               }}>
                 <div>
-                  <h4 style={{ fontSize: '1.2rem', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>{cls.studentName}</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{cls.course} • <strong style={{ color: 'var(--text-color)' }}>{cls.time}</strong></p>
+                  <h4 style={{ fontSize: '1.2rem', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>{cls.student?.name}</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{cls.enrollment?.course?.title} • <strong style={{ color: 'var(--text-color)' }}>{cls.time}</strong></p>
                 </div>
                 <div>
                   {cls.status === 'live' ? (
-                    <button className="btn" style={{ 
+                    <a href={cls.zoomLink} target="_blank" rel="noreferrer" className="btn" style={{ 
                       background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderColor: '#10b981', 
-                      animation: 'pulse-glow-green 2s infinite', padding: '0.8rem 2rem' 
+                      animation: 'pulse-glow-green 2s infinite', padding: '0.8rem 2rem', textDecoration: 'none', display: 'inline-block' 
                     }}>
-                      🔴 Join Class
-                    </button>
+                      🔴 Start Class
+                    </a>
                   ) : (
                     <button className="btn btn-outline" style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)', padding: '0.8rem 2rem', cursor: 'not-allowed' }}>
                       Wait for Time
@@ -150,7 +181,7 @@ const InstructorDashboard = () => {
                   )}
                 </div>
               </div>
-            ))}
+            )) : <p style={{ color: 'var(--text-muted)' }}>No upcoming classes.</p>}
           </div>
         )}
 
@@ -161,21 +192,21 @@ const InstructorDashboard = () => {
               <thead>
                 <tr style={{ borderBottom: '2px solid rgba(250, 204, 21, 0.3)' }}>
                   <th style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>Student Name</th>
-                  <th style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>Level</th>
+                  <th style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>Course</th>
                   <th style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>Current Progress (Ayah/Lesson)</th>
                   <th style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>Attendance</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
-                  <tr key={student.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{student.name}</td>
-                    <td style={{ padding: '1.5rem 1rem', color: 'var(--accent-color)' }}>{student.level}</td>
+                {students.map((enrollment) => (
+                  <tr key={enrollment._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{enrollment.student?.name}</td>
+                    <td style={{ padding: '1.5rem 1rem', color: 'var(--accent-color)' }}>{enrollment.course?.title}</td>
                     <td style={{ padding: '1.5rem 1rem' }}>
                       <input 
                         type="text" 
-                        value={student.progress} 
-                        onChange={(e) => handleProgressChange(student.id, e.target.value)}
+                        value={enrollment.currentAyahOrLesson} 
+                        onChange={(e) => handleProgressChange(enrollment._id, e.target.value)}
                         style={{ 
                           width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(56, 189, 248, 0.3)', 
                           color: 'white', padding: '0.6rem 1rem', borderRadius: '0.5rem' 
@@ -185,20 +216,20 @@ const InstructorDashboard = () => {
                     <td style={{ padding: '1.5rem 1rem' }}>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button 
-                          onClick={() => handleAttendanceChange(student.id, 'Present')}
+                          onClick={() => handleAttendanceChange(enrollment._id, 'Present')}
                           style={{ 
                             padding: '0.4rem 0.8rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', border: 'none',
-                            background: student.attendance === 'Present' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
-                            color: student.attendance === 'Present' ? '#10b981' : 'var(--text-muted)'
+                            background: enrollment.tempAttendance === 'Present' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
+                            color: enrollment.tempAttendance === 'Present' ? '#10b981' : 'var(--text-muted)'
                           }}>
                           Present
                         </button>
                         <button 
-                          onClick={() => handleAttendanceChange(student.id, 'Absent')}
+                          onClick={() => handleAttendanceChange(enrollment._id, 'Absent')}
                           style={{ 
                             padding: '0.4rem 0.8rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', border: 'none',
-                            background: student.attendance === 'Absent' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
-                            color: student.attendance === 'Absent' ? '#ef4444' : 'var(--text-muted)'
+                            background: enrollment.tempAttendance === 'Absent' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
+                            color: enrollment.tempAttendance === 'Absent' ? '#ef4444' : 'var(--text-muted)'
                           }}>
                           Absent
                         </button>
@@ -206,6 +237,7 @@ const InstructorDashboard = () => {
                     </td>
                   </tr>
                 ))}
+                {students.length === 0 && <tr><td colSpan="4">No students assigned.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -214,7 +246,6 @@ const InstructorDashboard = () => {
         {/* --- VIEW: WALLET & BALANCE --- */}
         {activeTab === 'wallet' && (
           <div>
-            {/* Balance Card */}
             <div style={{ 
               background: 'linear-gradient(135deg, rgba(250, 204, 21, 0.1), rgba(56, 189, 248, 0.1))', 
               padding: '3rem', borderRadius: '1.5rem', border: '1px solid rgba(250, 204, 21, 0.3)', 
@@ -229,7 +260,6 @@ const InstructorDashboard = () => {
               </button>
             </div>
 
-            {/* Payout History Table */}
             <h3 style={{ fontSize: '1.5rem', color: 'var(--text-color)', fontFamily: 'var(--font-heading)', marginBottom: '1.5rem' }}>Payout History</h3>
             <div style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto' }}>
               <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -244,8 +274,8 @@ const InstructorDashboard = () => {
                 </thead>
                 <tbody>
                   {payouts.map((payout) => (
-                    <tr key={payout.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>{payout.id}</td>
+                    <tr key={payout._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>{payout.invoiceId}</td>
                       <td style={{ padding: '1.5rem 1rem', color: 'var(--text-color)' }}>{payout.date}</td>
                       <td style={{ padding: '1.5rem 1rem', color: 'var(--text-color)' }}>{payout.method}</td>
                       <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{payout.amount}</td>
@@ -260,6 +290,7 @@ const InstructorDashboard = () => {
                       </td>
                     </tr>
                   ))}
+                  {payouts.length === 0 && <tr><td colSpan="5">No payouts requested yet.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -268,7 +299,6 @@ const InstructorDashboard = () => {
 
       </div>
 
-      {/* Request Payout Modal */}
       {isPayoutModalOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
@@ -292,7 +322,6 @@ const InstructorDashboard = () => {
               <div style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Amount ($)</label>
                 <input required type="number" max="680" className="form-control" value={payoutReq.amount} onChange={e => setPayoutReq({...payoutReq, amount: e.target.value})} placeholder="e.g. 500" />
-                <small style={{ color: 'var(--text-muted)', marginTop: '0.5rem', display: 'block' }}>Max available: $680.00</small>
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Payout Method</label>
@@ -303,7 +332,7 @@ const InstructorDashboard = () => {
                 </select>
               </div>
               <div style={{ marginBottom: '2rem' }}>
-                <label className="form-label">Account Details (Number/Email)</label>
+                <label className="form-label">Account Details</label>
                 <input required type="text" className="form-control" value={payoutReq.details} onChange={e => setPayoutReq({...payoutReq, details: e.target.value})} placeholder="Enter account details..." />
               </div>
               <button type="submit" className="btn btn-accent" style={{ width: '100%', padding: '1rem' }}>Submit Request</button>
@@ -311,14 +340,6 @@ const InstructorDashboard = () => {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes pulse-glow-green {
-          0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-      `}</style>
     </div>
   );
 };

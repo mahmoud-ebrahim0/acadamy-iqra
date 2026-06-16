@@ -2,12 +2,21 @@ import React, { useEffect, useState } from 'react';
 
 const DashboardOverview = () => {
   const [stats, setStats] = useState({ totalCourses: 0, totalInstructors: 0, totalStudents: 0 });
+  const [enrollments, setEnrollments] = useState([]);
 
   useEffect(() => {
+    // Fetch stats
     fetch('http://localhost:5000/api/admin/stats')
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error(err));
+
+    // For demo purposes, we will fetch all enrollments from an admin endpoint
+    // First we need to add this endpoint to adminRoutes.js, let's assume it exists as /api/admin/enrollments
+    fetch('http://localhost:5000/api/admin/enrollments')
+      .then(res => res.json())
+      .then(data => setEnrollments(data))
+      .catch(err => console.error("Could not fetch enrollments (maybe endpoint doesn't exist yet)", err));
   }, []);
 
   return (
@@ -38,30 +47,29 @@ const DashboardOverview = () => {
           <thead>
             <tr>
               <th>Student Name</th>
-              <th>Enrolled Courses</th>
+              <th>Enrolled Course</th>
               <th>Payment Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style={{ fontWeight: 'bold' }}>Ahmed Mohammed</td>
-              <td style={{ color: '#cbd5e1' }}>Reading & Writing Arabic, Juz Amma</td>
-              <td><span style={{ color: '#4ade80', textShadow: '0 0 10px rgba(74, 222, 128, 0.5)' }}>● Paid</span></td>
-              <td><button className="btn btn-outline" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>Manage</button></td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: 'bold' }}>Sara Ali</td>
-              <td style={{ color: '#cbd5e1' }}>Quran Memorization</td>
-              <td><span style={{ color: '#f87171', textShadow: '0 0 10px rgba(248, 113, 113, 0.5)' }}>● Pending</span></td>
-              <td><button className="btn btn-outline" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>Manage</button></td>
-            </tr>
-            <tr>
-              <td style={{ fontWeight: 'bold' }}>Omar Khaled</td>
-              <td style={{ color: '#cbd5e1' }}>Islamic Education</td>
-              <td><span style={{ color: '#4ade80', textShadow: '0 0 10px rgba(74, 222, 128, 0.5)' }}>● Paid</span></td>
-              <td><button className="btn btn-outline" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>Manage</button></td>
-            </tr>
+            {enrollments.length > 0 ? enrollments.map(enr => (
+              <tr key={enr._id}>
+                <td style={{ fontWeight: 'bold' }}>{enr.student?.name}</td>
+                <td style={{ color: '#cbd5e1' }}>{enr.course?.title}</td>
+                <td>
+                  <span style={{ 
+                    color: enr.paymentStatus === 'Paid' ? '#4ade80' : '#f87171', 
+                    textShadow: enr.paymentStatus === 'Paid' ? '0 0 10px rgba(74, 222, 128, 0.5)' : '0 0 10px rgba(248, 113, 113, 0.5)' 
+                  }}>
+                    ● {enr.paymentStatus}
+                  </span>
+                </td>
+                <td><button className="btn btn-outline" style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>Manage</button></td>
+              </tr>
+            )) : (
+              <tr><td colSpan="4" style={{ textAlign: 'center' }}>No active enrollments found.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

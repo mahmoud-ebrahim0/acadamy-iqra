@@ -2,6 +2,7 @@ import express from 'express';
 import Course from '../models/Course.js';
 import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
+import Enrollment from '../models/Enrollment.js';
 
 const router = express.Router();
 
@@ -81,6 +82,18 @@ router.post('/login', (req, res) => {
         res.json({ success: true, token: 'fake-jwt-token-12345' });
     } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+});
+
+// Admin Enrollments
+router.get('/enrollments', async (req, res) => {
+    try {
+        const enrollments = await Enrollment.find()
+            .populate('student', 'name email')
+            .populate('course', 'title');
+        res.json(enrollments);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 

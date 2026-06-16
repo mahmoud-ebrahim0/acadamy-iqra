@@ -35,6 +35,7 @@ const AuthPage = () => {
         // Save unified user details if provided
         if (data.user?.name) {
           localStorage.setItem('userName', data.user.name);
+          localStorage.setItem('userId', data.user._id);
         }
 
         // Currently, our User model might not send a specific role if not populated deeply, 
