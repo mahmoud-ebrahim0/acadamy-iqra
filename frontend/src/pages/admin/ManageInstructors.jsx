@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
-
-const initialInstructors = [
-  { id: 1, name: 'Sheikh Ali Qoja', rank: 'Senior Qari', schedule: 'Mon, Wed, Fri', attendance: 98, salary: '$1,200' },
-  { id: 2, name: 'Sheikh Abdulrahman', rank: '10 Qira\'at Specialist', schedule: 'Tue, Thu', attendance: 100, salary: '$1,500' },
-  { id: 3, name: 'Ustazah Rayan', rank: 'Women\'s Tajweed Tutor', schedule: 'Sat, Sun', attendance: 95, salary: '$900' },
-  { id: 4, name: 'Ustazah Banan', rank: 'Kids Quran Tutor', schedule: 'Mon, Tue, Wed', attendance: 92, salary: '$850' },
-];
+import React, { useState, useEffect } from 'react';
 
 const ManageInstructors = () => {
-  const [instructors, setInstructors] = useState(initialInstructors);
+  const [instructors, setInstructors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // New Instructor Form State
@@ -19,6 +12,17 @@ const ManageInstructors = () => {
     attendance: 100,
     salary: ''
   });
+
+  const fetchInstructors = () => {
+    fetch('http://localhost:5000/api/admin/instructors')
+      .then(res => res.json())
+      .then(data => setInstructors(data))
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchInstructors();
+  }, []);
 
   const handleDownloadReport = () => {
     // 1. Define CSV headers
@@ -54,10 +58,18 @@ const ManageInstructors = () => {
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    const newId = instructors.length ? instructors[instructors.length - 1].id + 1 : 1;
-    setInstructors([...instructors, { id: newId, ...newInstructor }]);
-    setIsModalOpen(false);
-    setNewInstructor({ name: '', rank: '', schedule: '', attendance: 100, salary: '' });
+    fetch('http://localhost:5000/api/admin/instructors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newInstructor)
+    })
+    .then(res => res.json())
+    .then(() => {
+      fetchInstructors(); // Refresh the list
+      setIsModalOpen(false);
+      setNewInstructor({ name: '', rank: '', schedule: '', attendance: 100, salary: '' });
+    })
+    .catch(err => console.error(err));
   };
 
   return (
@@ -98,7 +110,7 @@ const ManageInstructors = () => {
           </thead>
           <tbody>
             {instructors.map((inst) => (
-              <tr key={inst.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr key={inst._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{inst.name}</td>
                 <td style={{ padding: '1.5rem 1rem' }}>
                   <span style={{ background: 'rgba(3, 105, 161, 0.2)', color: 'var(--accent-color)', padding: '0.4rem 0.8rem', borderRadius: '1rem', fontSize: '0.85rem', fontWeight: 'bold' }}>

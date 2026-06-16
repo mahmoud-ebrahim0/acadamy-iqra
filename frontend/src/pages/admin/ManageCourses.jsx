@@ -25,13 +25,10 @@ const ManageCourses = () => {
 
     const courseData = {
       title: newCourse.title,
-      age: newCourse.age,
+      level: newCourse.age,
       description: newCourse.description,
       price: newCourse.price,
-      category: 'Newly Added',
       icon: '📖', // Fallback for existing UI
-      // Mocking an image URL since actual upload requires backend storage
-      imageUrl: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80'
     };
 
     // 1. Send data to Antigravity Webhook (Airtable / Supabase Automation)
@@ -128,13 +125,13 @@ const ManageCourses = () => {
           </thead>
           <tbody>
             {courses.map(course => (
-              <tr key={course.id}>
+              <tr key={course._id}>
                 <td style={{ fontSize: '1.5rem' }}>{course.icon}</td>
                 <td style={{ fontWeight: '600' }}>{course.title}</td>
-                <td>{course.age}</td>
-                <td><span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.2rem 0.8rem', borderRadius: '1rem', fontSize: '0.9rem' }}>{course.category}</span></td>
+                <td>{course.level}</td>
+                <td><span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.2rem 0.8rem', borderRadius: '1rem', fontSize: '0.9rem' }}>Standard</span></td>
                 <td>
-                  <button onClick={() => handleDeleteCourse(course.id)} style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer' }}>Delete</button>
+                  <button onClick={() => handleDeleteCourse(course._id)} style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer' }}>Delete</button>
                 </td>
               </tr>
             ))}
