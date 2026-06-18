@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
+import logo from '../assets/tarteel-logo.png';
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
@@ -71,8 +73,9 @@ const Navbar = () => {
   return (
     <nav className={`navbar ${showNavbar ? '' : 'navbar-hidden'}`}>
       <div className="container">
-        <Link to="/home" className="nav-logo" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-          <span>Iqra</span> Academy
+        <Link to="/home" className="nav-logo" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ gap: '10px' }}>
+          <img src={logo} alt="Tarteel Academy Logo" style={{ height: '40px', width: 'auto', borderRadius: '5px' }} />
+          <span>Tarteel</span> Academy
         </Link>
         <button className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? '✕' : '☰'}

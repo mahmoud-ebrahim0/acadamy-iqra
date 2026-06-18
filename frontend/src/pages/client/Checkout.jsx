@@ -97,7 +97,7 @@ const Checkout = () => {
         
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <Link to="/home" style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary-color)', textDecoration: 'none', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)' }}>
-            Iqra Academy
+            Tarteel Academy
           </Link>
           <h1 style={{ color: 'white', fontSize: '2.5rem', marginTop: '1rem' }}>Complete Your Enrollment</h1>
         </div>
@@ -197,7 +197,7 @@ const Checkout = () => {
                 </p>
                 <div style={{ background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '0.8rem', textAlign: 'center', marginBottom: '1.5rem' }}>
                   <span style={{ fontSize: '1.5rem', color: 'white', letterSpacing: '2px', fontFamily: 'monospace' }}>
-                    {paymentMethod === 'Vodafone Cash' ? '01012345678' : 'iqra_academy@instapay'}
+                    {paymentMethod === 'Vodafone Cash' ? '01012345678' : 'tarteel_academy@instapay'}
                   </span>
                 </div>
                 

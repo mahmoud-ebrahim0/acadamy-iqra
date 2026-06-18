@@ -27,7 +27,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <div className="admin-sidebar">
         <Link to="/home" className="admin-sidebar-logo">
-          <span>Iqra</span> Academy
+          <span>Tarteel</span> Academy
         </Link>
         <div className="admin-nav">
           <Link to="/admin" className={isActive('/admin')}>📊 Overview</Link>

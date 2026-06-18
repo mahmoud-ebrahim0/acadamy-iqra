@@ -26,7 +26,7 @@ const HeroSection = ({ onBookTrial }) => {
           pointerEvents: 'none',
           lineHeight: 1
         }}>
-          إقرأ
+          ترتيل
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4rem', marginTop: '10vh' }}>

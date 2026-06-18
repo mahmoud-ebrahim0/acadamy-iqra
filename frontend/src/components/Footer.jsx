@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-col">
-            <h3>Iqra Academy</h3>
+            <h3>Tarteel Academy</h3>
             <p style={{ opacity: 0.8 }}>We help parents raise their children on the Islamic curriculum and proper Arabic language.</p>
           </div>
           <div className="footer-col">
@@ -36,7 +36,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Iqra Educational Academy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Tarteel Educational Academy. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -79,7 +79,7 @@ const AuthPage = () => {
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <Link to="/home" style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--primary-color)', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)' }}>
-            <span>Iqra</span> Academy
+            <span>Tarteel</span> Academy
           </Link>
           <h2 style={{ color: 'white', fontSize: '1.8rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.5)' }}>
             {isLogin ? 'Welcome Back 🚀' : 'Begin Your Journey ✨'}

@@ -7,7 +7,7 @@ import PricingSection from '../../components/PricingSection';
 import MethodologySection from '../../components/MethodologySection';
 import WomensAcademySection from '../../components/WomensAcademySection';
 import InstructorsSection from '../../components/InstructorsSection';
-import StarsOfIqraSection from '../../components/StarsOfIqraSection';
+import StarsOfTarteelSection from '../../components/StarsOfTarteelSection';
 import FAQSection from '../../components/FAQSection';
 import TestimonialsSection from '../../components/TestimonialsSection';
 import Footer from '../../components/Footer';
@@ -37,7 +37,7 @@ const ClientHome = () => {
       <WomensAcademySection />
       
       <div id="instructors"><InstructorsSection /></div>
-      <StarsOfIqraSection />
+      <StarsOfTarteelSection />
       
       <FAQSection />
       <TestimonialsSection />

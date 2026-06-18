@@ -105,7 +105,7 @@ const InstructorDashboard = () => {
       {/* Sidebar Navigation */}
       <div className="admin-sidebar" style={{ padding: '2rem 1rem' }}>
         <div className="admin-sidebar-logo" style={{ marginBottom: '3rem', paddingLeft: '1.5rem' }}>
-          <span>Iqra</span> Academy
+          <span>Tarteel</span> Academy
         </div>
         <div className="admin-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '100%' }}>
           <SidebarLink id="dashboard" icon="👨‍🏫" label="My Dashboard" />

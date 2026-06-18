@@ -27,7 +27,7 @@ const TestimonialsSection = () => {
 
           <div className="testimonial-card" style={{ borderLeft: '4px solid var(--accent-color)', boxShadow: '0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(56, 189, 248, 0.05)' }}>
             <p className="testimonial-text" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-              "We live in France, and I found it difficult to teach them Arabic, but thanks to Allah and the efforts of her teacher Ms. Banan Saleh, Asiya started learning the letters, mastering their writing and pronunciation. Especially since Asiya did not master the letters before she started learning with Iqra Academy. May Allah reward you."
+              "We live in France, and I found it difficult to teach them Arabic, but thanks to Allah and the efforts of her teacher Ms. Banan Saleh, Asiya started learning the letters, mastering their writing and pronunciation. Especially since Asiya did not master the letters before she started learning with Tarteel Academy. May Allah reward you."
             </p>
             <h4 style={{ color: 'var(--accent-color)', textShadow: '0 0 10px rgba(56, 189, 248, 0.4)' }}>- Father of Asiya (France)</h4>
           </div>

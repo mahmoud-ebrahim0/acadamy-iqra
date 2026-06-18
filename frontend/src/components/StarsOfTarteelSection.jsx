@@ -8,12 +8,12 @@ const starStudents = [
   { id: 5, name: 'Yusuf A.', achievement: '100% Attendance this Month', image: '/sheikh.png', delay: '1.5s' }
 ];
 
-const StarsOfIqraSection = () => {
+const StarsOfTarteelSection = () => {
   return (
     <section className="section" style={{ background: 'var(--bg-color)', paddingBottom: '6rem' }}>
       <div className="container">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title">Stars of Iqra</h2>
+          <h2 className="section-title">Stars of Tarteel</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Hover over the stars to see this week's outstanding students.</p>
         </div>
 
@@ -88,4 +88,4 @@ const StarsOfIqraSection = () => {
   );
 };
 
-export default StarsOfIqraSection;
+export default StarsOfTarteelSection;
