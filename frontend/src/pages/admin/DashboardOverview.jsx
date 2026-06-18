@@ -32,7 +32,7 @@ const DashboardOverview = () => {
       </div>
 
       <div className="admin-table-container">
-        <h3 style={{ padding: '1.5rem', borderBottom: '1px dashed rgba(255,255,255,0.1)', color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>Student Management</h3>
+        <h3 style={{ padding: '1.5rem', borderBottom: '1px dashed rgba(0,0,0,0.1)', color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>Student Management</h3>
         <table className="admin-table">
           <thead>
             <tr>

@@ -139,15 +139,15 @@ const InstructorDashboard = () => {
         {/* --- VIEW: DASHBOARD STATS --- */}
         {activeTab === 'dashboard' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Total Teaching Hours</h3>
               <div style={{ fontSize: '3.5rem', color: 'var(--primary-color)', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>45h</div>
             </div>
-            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Active Students</h3>
               <div style={{ fontSize: '3.5rem', color: 'var(--accent-color)', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{students.length}</div>
             </div>
-            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Upcoming Classes</h3>
               <div style={{ fontSize: '3.5rem', color: '#10b981', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{schedule.length}</div>
             </div>
@@ -160,7 +160,7 @@ const InstructorDashboard = () => {
             {schedule.length > 0 ? schedule.map(cls => (
               <div key={cls._id} style={{ 
                 background: 'var(--card-bg)', padding: '1.5rem 2rem', borderRadius: '1rem', 
-                border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
+                border: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
               }}>
                 <div>
                   <h4 style={{ fontSize: '1.2rem', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>{cls.student?.name}</h4>
@@ -187,7 +187,7 @@ const InstructorDashboard = () => {
 
         {/* --- VIEW: STUDENTS --- */}
         {activeTab === 'students' && (
-          <div style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto' }}>
+          <div style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(0,0,0,0.05)', overflowX: 'auto' }}>
             <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid rgba(250, 204, 21, 0.3)' }}>
@@ -199,7 +199,7 @@ const InstructorDashboard = () => {
               </thead>
               <tbody>
                 {students.map((enrollment) => (
-                  <tr key={enrollment._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr key={enrollment._id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                     <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{enrollment.student?.name}</td>
                     <td style={{ padding: '1.5rem 1rem', color: 'var(--accent-color)' }}>{enrollment.course?.title}</td>
                     <td style={{ padding: '1.5rem 1rem' }}>
@@ -219,7 +219,7 @@ const InstructorDashboard = () => {
                           onClick={() => handleAttendanceChange(enrollment._id, 'Present')}
                           style={{ 
                             padding: '0.4rem 0.8rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', border: 'none',
-                            background: enrollment.tempAttendance === 'Present' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
+                            background: enrollment.tempAttendance === 'Present' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0,0,0,0.05)',
                             color: enrollment.tempAttendance === 'Present' ? '#10b981' : 'var(--text-muted)'
                           }}>
                           Present
@@ -228,7 +228,7 @@ const InstructorDashboard = () => {
                           onClick={() => handleAttendanceChange(enrollment._id, 'Absent')}
                           style={{ 
                             padding: '0.4rem 0.8rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', border: 'none',
-                            background: enrollment.tempAttendance === 'Absent' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
+                            background: enrollment.tempAttendance === 'Absent' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0,0,0,0.05)',
                             color: enrollment.tempAttendance === 'Absent' ? '#ef4444' : 'var(--text-muted)'
                           }}>
                           Absent
@@ -261,7 +261,7 @@ const InstructorDashboard = () => {
             </div>
 
             <h3 style={{ fontSize: '1.5rem', color: 'var(--text-color)', fontFamily: 'var(--font-heading)', marginBottom: '1.5rem' }}>Payout History</h3>
-            <div style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', border: '1px solid rgba(0,0,0,0.05)', overflowX: 'auto' }}>
               <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid rgba(250, 204, 21, 0.3)' }}>
@@ -274,7 +274,7 @@ const InstructorDashboard = () => {
                 </thead>
                 <tbody>
                   {payouts.map((payout) => (
-                    <tr key={payout._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <tr key={payout._id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                       <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>{payout.invoiceId}</td>
                       <td style={{ padding: '1.5rem 1rem', color: 'var(--text-color)' }}>{payout.date}</td>
                       <td style={{ padding: '1.5rem 1rem', color: 'var(--text-color)' }}>{payout.method}</td>
@@ -302,7 +302,7 @@ const InstructorDashboard = () => {
       {isPayoutModalOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: 'rgba(3, 8, 17, 0.8)', backdropFilter: 'blur(10px)',
+          background: 'var(--bg-color)', backdropFilter: 'blur(10px)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000
         }}>
           <div style={{

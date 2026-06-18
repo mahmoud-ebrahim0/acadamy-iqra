@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إذاعة القرآن الكريم</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="subtitle">بث مباشر</span>
+      <h1 class="title">إذاعة القرآن الكريم</h1>
+    </div>
+
+    <!-- Player Area -->
+    <div class="player-section">
+      <div class="visualizer" id="visualizer">
+        <div class="visualizer-core"></div>
+      </div>
+      
+      <div class="now-playing">
+        <span class="label">يتم الآن الاستماع إلى:</span>
+        <h3 id="currentStationName">...</h3>
+      </div>
+
+      <div class="controls">
+        <button id="playBtn" class="play-btn">▶</button>
+      </div>
+
+      <div class="volume-control">
+        <span>🔉</span>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
+        <span>🔊</span>
+      </div>
+    </div>
+
+    <!-- Search & List Area -->
+    <div class="list-section">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="ابحث عن مقرئ أو إذاعة...">
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="reciters">تلاوات 🎙️</button>
+        <button class="tab-btn" data-tab="tafseer">تفسير 📚</button>
+        <button class="tab-btn" data-tab="hadith">حديث وفقه 📜</button>
+        <button class="tab-btn" data-tab="adhkar">أذكار وسكينة 🕊️</button>
+      </div>
+
+      <div class="radios-list" id="radiosList">
+        <div class="loading">جاري التحميل...</div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

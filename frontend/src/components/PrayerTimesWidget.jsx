@@ -24,7 +24,7 @@ const PrayerTimesWidget = () => {
 
   return (
     <div className="prayer-times-widget" style={{ 
-      background: 'rgba(10, 11, 10, 0.8)', 
+      background: 'var(--card-bg)', 
       border: '1px solid rgba(212, 175, 55, 0.3)', 
       borderRadius: '12px', 
       padding: '1.5rem', 

@@ -24,7 +24,7 @@ const Checkout = () => {
   if (!course) {
     return (
       <div className="hero-cosmic" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', padding: '3rem', background: 'rgba(11,25,48,0.8)', borderRadius: '2rem' }}>
+        <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--card-bg)', borderRadius: '2rem' }}>
           <h2 style={{ color: 'white', marginBottom: '1rem' }}>No Course Selected!</h2>
           <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>Please select a course to enroll.</p>
           <Link to="/home" className="btn btn-accent">Go Back to Courses</Link>
@@ -111,7 +111,7 @@ const Checkout = () => {
         <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '3rem' }}>
           
           {/* Left Column: Student Information Form */}
-          <div style={{ background: 'rgba(11, 25, 48, 0.6)', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(56, 189, 248, 0.2)', backdropFilter: 'blur(15px)' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(56, 189, 248, 0.2)', backdropFilter: 'blur(15px)' }}>
             <h2 style={{ color: 'var(--accent-color)', marginBottom: '1.5rem', fontSize: '1.5rem', borderBottom: '1px solid rgba(56,189,248,0.2)', paddingBottom: '0.5rem' }}>1. Student Information</h2>
             
             <div className="form-group">
@@ -151,11 +151,11 @@ const Checkout = () => {
           </div>
 
           {/* Right Column: Order Summary & Payment */}
-          <div style={{ background: 'rgba(11, 25, 48, 0.6)', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(250, 204, 21, 0.2)', backdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '2.5rem', borderRadius: '2rem', border: '1px solid rgba(250, 204, 21, 0.2)', backdropFilter: 'blur(15px)', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', fontSize: '1.5rem', borderBottom: '1px solid rgba(250,204,21,0.2)', paddingBottom: '0.5rem' }}>2. Order Summary & Payment</h2>
             
             {/* Course Summary Card */}
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.3rem' }}>Selected Course</p>
                 <h3 style={{ color: 'white', fontSize: '1.2rem' }}>{course.title}</h3>
@@ -178,7 +178,7 @@ const Checkout = () => {
                     style={{
                       flex: 1, padding: '1rem 0.5rem', borderRadius: '1rem', border: '1px solid', cursor: 'pointer', transition: 'all 0.3s', fontWeight: 'bold', fontSize: '0.9rem',
                       background: paymentMethod === method ? 'rgba(250, 204, 21, 0.1)' : 'rgba(0,0,0,0.3)',
-                      borderColor: paymentMethod === method ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)',
+                      borderColor: paymentMethod === method ? 'var(--primary-color)' : 'rgba(0,0,0,0.1)',
                       color: paymentMethod === method ? 'var(--primary-color)' : '#94a3b8',
                       boxShadow: paymentMethod === method ? '0 0 15px rgba(250,204,21,0.2)' : 'none'
                     }}
@@ -209,7 +209,7 @@ const Checkout = () => {
                     onChange={(e) => setScreenshot(e.target.files[0])}
                     style={{ 
                       width: '100%', padding: '0.8rem', background: 'rgba(0,0,0,0.4)', borderRadius: '0.5rem', color: 'var(--text-muted)',
-                      border: '1px solid rgba(255,255,255,0.1)'
+                      border: '1px solid rgba(0,0,0,0.1)'
                     }} 
                   />
                   {screenshot && <p style={{ color: 'var(--accent-color)', fontSize: '0.85rem', marginTop: '0.5rem' }}>File selected: {screenshot.name}</p>}
@@ -218,7 +218,7 @@ const Checkout = () => {
             )}
 
             {paymentMethod === 'Credit Card' && (
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', marginBottom: '2rem' }}>
                 <p style={{ color: '#cbd5e1', textAlign: 'center' }}>You will be redirected to the secure Stripe payment gateway after clicking Confirm.</p>
               </div>
             )}

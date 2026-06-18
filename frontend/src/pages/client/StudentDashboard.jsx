@@ -87,7 +87,7 @@ const StudentDashboard = () => {
                       </div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Current Lesson: {enr.currentAyahOrLesson}</div>
                       {/* Progress Bar Container */}
-                      <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 0 5px rgba(0,0,0,0.5)' }}>
+                      <div style={{ width: '100%', height: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 0 5px rgba(0,0,0,0.5)' }}>
                         {/* Golden Progress Fill */}
                         <div style={{ 
                           width: `${enr.progressPercentage}%`, 

@@ -75,7 +75,7 @@ const AuthPage = () => {
       <div className="cosmic-swirl swirl-1" style={{ top: '10%', left: '20%' }}></div>
       <div className="cosmic-swirl swirl-2" style={{ bottom: '10%', right: '20%' }}></div>
 
-      <div style={{ position: 'relative', zIndex: 10, background: 'rgba(11, 25, 48, 0.4)', padding: '3rem', borderRadius: '2rem', boxShadow: '0 0 40px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(250, 204, 21, 0.1)', width: '100%', maxWidth: '450px', backdropFilter: 'blur(15px)', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+      <div style={{ position: 'relative', zIndex: 10, background: 'var(--card-bg)', padding: '3rem', borderRadius: '2rem', boxShadow: '0 0 40px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(250, 204, 21, 0.1)', width: '100%', maxWidth: '450px', backdropFilter: 'blur(15px)', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <Link to="/home" style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--primary-color)', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)' }}>
@@ -115,7 +115,7 @@ const AuthPage = () => {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '1.5rem' }}>
           <p style={{ color: 'var(--text-muted)' }}>
             {isLogin ? "Don't have an account?" : "Already exploring with us?"}
             <button onClick={toggleAuthMode} type="button" style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: 'bold', marginLeft: '0.5rem', cursor: 'pointer', fontSize: '1rem', textShadow: '0 0 10px rgba(250, 204, 21, 0.3)' }}>

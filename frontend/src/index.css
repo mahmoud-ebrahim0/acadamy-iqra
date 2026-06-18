@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
-  --primary-color: #facc15; /* Glowing Gold */
-  --secondary-color: #0B1930; /* Deep Space Blue */
-  --accent-color: #38bdf8; /* Ethereal Cyan */
-  --accent-hover: #0284c7;
-  --bg-color: #030811; /* Void Black/Blue */
-  --bg-secondary: rgba(11, 25, 48, 0.4);
-  --text-color: #e2e8f0; /* Silver White */
-  --text-muted: #94a3b8;
-  --card-bg: rgba(11, 25, 48, 0.6); /* Glassmorphic Dark */
+  --primary-color: #1e3a8a; /* Deep Navy Blue */
+  --secondary-color: #0f172a; /* Slate 900 */
+  --accent-color: #d4af37; /* Elegant Gold */
+  --accent-hover: #b48e24;
+  --bg-color: #f8fafc; /* Clean Off-White */
+  --bg-secondary: #f1f5f9;
+  --text-color: #334155; /* Dark Slate */
+  --text-muted: #64748b;
+  --card-bg: #ffffff; /* Pure White */
   --white: #ffffff;
   
   --font-heading: 'Amiri', serif;
@@ -31,22 +31,9 @@ body {
   position: relative;
 }
 
-/* Global Noise Texture Overlay (Simplified for performance) */
+/* Global Background Overlay Removed for cleaner light theme */
 body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
-  opacity: 0.05;
-}
-
-[data-theme="light"] body::before {
-  opacity: 0.08;
+  display: none;
 }
 
 h1, h2, h3, h4, h5, h6, .section-title {
@@ -71,7 +58,6 @@ h1, h2, h3, h4, h5, h6, .section-title {
   color: var(--primary-color);
   margin-bottom: 3rem;
   position: relative;
-  text-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
 }
 
 .section-title::after {
@@ -95,10 +81,10 @@ h1, h2, h3, h4, h5, h6, .section-title {
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(250, 204, 21, 0.3);
-  background: rgba(11, 25, 48, 0.8);
-  color: var(--primary-color);
-  box-shadow: 0 0 15px rgba(250, 204, 21, 0.1);
+  border: none;
+  background: var(--primary-color);
+  color: var(--white);
+  box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2);
   position: relative;
   overflow: hidden;
   text-decoration: none;
@@ -110,7 +96,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   position: absolute;
   top: 0; left: -100%;
   width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: all 0.5s ease;
 }
 
@@ -119,26 +105,24 @@ h1, h2, h3, h4, h5, h6, .section-title {
 }
 
 .btn:hover {
-  box-shadow: 0 0 25px rgba(250, 204, 21, 0.4);
-  border-color: var(--primary-color);
+  box-shadow: 0 6px 12px rgba(30, 58, 138, 0.3);
   transform: translateY(-2px);
-  color: var(--primary-color);
+  color: var(--white);
 }
 
 .btn-accent {
-  border: 1px solid rgba(56, 189, 248, 0.5);
-  color: var(--accent-color);
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+  background: var(--accent-color);
+  color: var(--secondary-color);
+  box-shadow: 0 4px 6px rgba(212, 175, 55, 0.2);
 }
 
 .btn-accent::before {
-  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .btn-accent:hover {
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
-  border-color: var(--accent-color);
-  color: var(--accent-color);
+  box-shadow: 0 6px 12px rgba(212, 175, 55, 0.4);
+  color: var(--secondary-color);
 }
 
 .btn-outline {
@@ -153,14 +137,14 @@ h1, h2, h3, h4, h5, h6, .section-title {
 
 /* Navbar Component */
 .navbar {
-  background-color: rgba(3, 8, 17, 0.85);
+  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
   transition: transform 0.3s ease-in-out;
 }
 
@@ -217,8 +201,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
 /* Hero Section Cosmic Theme */
 .hero-cosmic {
   position: relative;
-  background: radial-gradient(circle at center, #0B1930 0%, #030811 100%);
-  color: var(--white);
+  background: var(--bg-color);
+  color: var(--text-color);
   padding: 8rem 0 12rem;
   text-align: center;
   overflow: hidden;
@@ -227,37 +211,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
   align-items: center;
 }
 
-.cosmic-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-}
-
-.stars,
-.twinkling {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.stars {
-  background: #000 url('https://www.transparenttextures.com/patterns/stardust.png') repeat top center;
-  z-index: 0;
-}
-
-.twinkling {
-  background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat top center;
-  z-index: 1;
-  animation: move-twink-back 200s linear infinite;
-  opacity: 0.5;
+.cosmic-background, .stars, .twinkling {
+  display: none;
 }
 
 .glow {
@@ -300,24 +255,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
   font-family: 'Amiri', 'Cairo', serif;
   font-size: 3.5rem;
   font-weight: bold;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8),
-    0 0 20px rgba(255, 215, 0, 0.6),
-    0 0 30px rgba(255, 215, 0, 0.4),
-    0 0 40px rgba(217, 119, 6, 0.8);
-  animation: pulse-glow 3s infinite alternate;
-}
-
-@keyframes pulse-glow {
-  0% {
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.5);
-    transform: scale(1);
-  }
-
-  100% {
-    text-shadow: 0 0 15px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8), 0 0 40px rgba(217, 119, 6, 0.6);
-    transform: scale(1.02);
-  }
+  color: var(--primary-color);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-text h1 {
@@ -325,17 +264,16 @@ h1, h2, h3, h4, h5, h6, .section-title {
   font-weight: 800;
   margin-bottom: 1.5rem;
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: var(--primary-color);
 }
 
 .hero-text p {
   font-size: 1.25rem;
   margin-bottom: 2.5rem;
-  opacity: 0.9;
+  color: var(--text-muted);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .hero-btns {
@@ -345,68 +283,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
 }
 
 /* Silhouettes */
-.silhouette-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 250px;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.mountains-silhouette {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 150px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%2302040a" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,218.7C384,224,480,224,576,213.3C672,203,768,181,864,181.3C960,181,1056,203,1152,202.7C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom center;
-  background-size: cover;
-}
-
-.person-silhouette {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 150px;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200"><path fill="%2302040a" d="M50 10 C58 10 65 17 65 25 C65 33 58 40 50 40 C42 40 35 33 35 25 C35 17 42 10 50 10 Z M 40 45 L 60 45 C 70 45 75 55 75 70 L 65 130 L 55 130 L 55 190 L 45 190 L 45 130 L 35 130 L 25 70 C 25 55 30 45 40 45 Z"/></svg>') no-repeat bottom center;
-  background-size: contain;
-  z-index: 6;
-}
-
-/* Cosmic Background Elements for Sections */
-.cosmic-swirl {
-  position: absolute;
-  border-radius: 50%;
-  /* Removed heavy filter: blur(80px) for performance */
-  z-index: 0;
-  opacity: 0.2;
-  animation: float-swirl 15s infinite alternate ease-in-out;
-}
-
-.swirl-1 {
-  width: 400px; height: 400px;
-  background: rgba(250, 204, 21, 0.15); /* Gold */
-  top: 10%; left: -100px;
-}
-
-.swirl-2 {
-  width: 500px; height: 500px;
-  background: rgba(56, 189, 248, 0.15); /* Cyan */
-  bottom: 10%; right: -150px;
-}
-
-.asteroid {
-  position: absolute;
-  width: 15px; height: 15px;
-  background: linear-gradient(135deg, #facc15, #b45309);
-  border-radius: 40% 60% 70% 30%;
-  box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
-  animation: float-asteroid 20s linear infinite;
-  z-index: 0;
+.silhouette-container, .mountains-silhouette, .person-silhouette, .cosmic-swirl, .asteroid, .glow {
+  display: none;
 }
 
 @keyframes float-swirl {
@@ -562,27 +440,26 @@ h1, h2, h3, h4, h5, h6, .section-title {
   background: var(--card-bg);
   padding: 2rem;
   border-radius: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
   margin-bottom: 1.5rem;
-  border-left: 4px solid var(--primary-color);
-  backdrop-filter: blur(10px);
+  border-left: 4px solid var(--accent-color);
 }
 
 .testimonial-text {
   font-size: 1.1rem;
   font-style: italic;
   margin-bottom: 1rem;
-  color: #cbd5e1;
+  color: var(--text-muted);
   line-height: 1.8;
 }
 
 /* Footer Component */
 .footer {
-  background: linear-gradient(180deg, rgba(3, 8, 17, 0.95), rgba(15, 23, 42, 1));
+  background: var(--secondary-color);
   color: white;
   padding: 5rem 0 2rem;
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+  border-top: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.02);
   position: relative;
 }
 

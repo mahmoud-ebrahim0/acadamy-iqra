@@ -25,26 +25,26 @@ const DailyInspiration = () => {
 
   return (
     <div className="daily-inspiration-widget" style={{
-      background: 'linear-gradient(135deg, rgba(10, 11, 10, 0.9), rgba(212, 175, 55, 0.05))',
+      background: 'linear-gradient(135deg, var(--card-bg), rgba(212, 175, 55, 0.05))',
       borderLeft: '4px solid #d4af37',
       borderRadius: '8px',
       padding: '2rem',
       margin: '2rem auto',
       maxWidth: '800px',
-      color: '#e8e8e3',
+      color: 'var(--text-color)',
       textAlign: 'center',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      <div style={{ position: 'absolute', top: '-20px', left: '-20px', fontSize: '6rem', opacity: 0.05, color: '#d4af37' }}>❞</div>
+      <div style={{ position: 'absolute', top: '-20px', left: '-20px', fontSize: '6rem', opacity: 0.1, color: '#d4af37' }}>❞</div>
       <h3 style={{ color: '#d4af37', marginBottom: '1rem', fontSize: '1.2rem', opacity: 0.8 }}>Daily Inspiration ✨</h3>
-      <p style={{ fontSize: '2.5rem', lineHeight: '1.6', fontFamily: 'Amiri, serif', textShadow: '0 2px 4px rgba(0,0,0,0.5)', direction: 'rtl', fontWeight: 'bold' }}>
+      <p style={{ fontSize: '2.5rem', lineHeight: '1.6', fontFamily: 'Amiri, serif', direction: 'rtl', fontWeight: 'bold' }}>
         "{quote.ar}"
       </p>
-      <p style={{ fontSize: '1.4rem', lineHeight: '1.6', color: '#cbd5e1', marginTop: '1rem', fontStyle: 'italic' }}>
+      <p style={{ fontSize: '1.4rem', lineHeight: '1.6', color: 'var(--text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
         "{quote.en}"
       </p>
-      <p style={{ marginTop: '1rem', color: '#888', fontSize: '1rem' }}>- {quote.source}</p>
+      <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontSize: '1rem' }}>- {quote.source}</p>
     </div>
   );
 };

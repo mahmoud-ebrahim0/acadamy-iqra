@@ -23,9 +23,9 @@ const StarsOfIqraSection = () => {
           justifyContent: 'center', 
           gap: '4rem', 
           padding: '6rem 2rem', 
-          background: 'radial-gradient(circle at center, rgba(15,23,42,0.8) 0%, rgba(3,8,17,1) 100%)',
+          background: 'radial-gradient(circle at center, rgba(15,23,42,0.8) 0%, var(--bg-color) 100%)',
           borderRadius: '2rem',
-          border: '1px solid rgba(255,255,255,0.05)',
+          border: '1px solid rgba(0,0,0,0.05)',
           position: 'relative',
           overflow: 'hidden'
         }}>

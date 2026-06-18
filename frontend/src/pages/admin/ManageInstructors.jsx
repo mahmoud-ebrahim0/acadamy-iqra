@@ -79,7 +79,7 @@ const ManageInstructors = () => {
         borderRadius: '1.5rem', 
         padding: '2rem', 
         boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        border: '1px solid rgba(0,0,0,0.05)',
         overflowX: 'auto'
       }}>
         <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -95,7 +95,7 @@ const ManageInstructors = () => {
           </thead>
           <tbody>
             {instructors.map((inst) => (
-              <tr key={inst._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr key={inst._id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                 <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{inst.name}</td>
                 <td style={{ padding: '1.5rem 1rem' }}>
                   <span style={{ background: 'rgba(3, 105, 161, 0.2)', color: 'var(--accent-color)', padding: '0.4rem 0.8rem', borderRadius: '1rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
@@ -105,7 +105,7 @@ const ManageInstructors = () => {
                 <td style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>{inst.schedule}</td>
                 <td style={{ padding: '1.5rem 1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '100px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: '100px', height: '6px', background: 'rgba(0,0,0,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${inst.attendance}%`, height: '100%', background: inst.attendance >= 95 ? 'var(--primary-color)' : 'var(--accent-color)' }}></div>
                     </div>
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{inst.attendance}%</span>
@@ -131,7 +131,7 @@ const ManageInstructors = () => {
       {isModalOpen && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: 'rgba(3, 8, 17, 0.8)', backdropFilter: 'blur(10px)',
+          background: 'var(--bg-color)', backdropFilter: 'blur(10px)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000
         }}>
           <div style={{
