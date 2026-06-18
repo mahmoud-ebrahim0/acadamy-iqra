@@ -4,6 +4,8 @@ import ClientHome from './pages/client/ClientHome';
 import AuthPage from './pages/client/AuthPage';
 import Checkout from './pages/client/Checkout';
 import StudentDashboard from './pages/client/StudentDashboard';
+import RadioPage from './pages/client/RadioPage';
+import LiveHaramainPage from './pages/client/LiveHaramainPage';
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
 import ManageCourses from './pages/admin/ManageCourses';
@@ -34,6 +36,8 @@ function App() {
           
           {/* Client Routes */}
           <Route path="/home" element={<ClientHome />} />
+          <Route path="/radio" element={<RadioPage />} />
+          <Route path="/live-haramain" element={<LiveHaramainPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
           <Route path="/checkout/:courseId" element={<Checkout />} />

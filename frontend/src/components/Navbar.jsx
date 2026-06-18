@@ -84,6 +84,8 @@ const Navbar = () => {
           <li><a href="#methodology" onClick={(e) => handleScrollTo(e, 'methodology')}>Sanad</a></li>
           <li><a href="#womens-academy" onClick={(e) => handleScrollTo(e, 'womens-academy')}>Sisters</a></li>
           <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>FAQ</a></li>
+          <li><Link to="/radio" onClick={() => setIsOpen(false)} style={{ color: '#d4af37', fontWeight: 'bold' }}>Live Radio</Link></li>
+          <li><Link to="/live-haramain" onClick={() => setIsOpen(false)} style={{ color: '#fff', fontWeight: 'bold' }}>Haramain 🕌</Link></li>
         </ul>
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
           <button onClick={toggleTheme} title="Toggle Daylight/Cosmic Theme" style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', transition: 'transform 0.3s', transform: theme === 'light' ? 'rotate(-20deg)' : 'rotate(0)' }}>

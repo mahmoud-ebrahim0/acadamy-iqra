@@ -1,55 +1,92 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import Course from './models/Course.js';
 import Instructor from './models/Instructor.js';
+import User from './models/User.js';
 
-const seedDB = async () => {
+dotenv.config();
+
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/quran_academy';
+
+const dummyCourses = [
+    {
+        title: "Quran Memorization (Hifz) for Beginners",
+        level: "Beginner",
+        description: "A structured path to memorizing the Holy Quran for absolute beginners, starting with Juz Amma.",
+        price: 50,
+        icon: "📖"
+    },
+    {
+        title: "Advanced Tajweed Rules",
+        level: "Advanced",
+        description: "Master the rules of Tajweed with practical application and 1-on-1 recitation correction.",
+        price: 70,
+        icon: "🎙️"
+    },
+    {
+        title: "Arabic for Non-Native Speakers",
+        level: "Intermediate",
+        description: "Learn to read and understand the language of the Quran directly without translation.",
+        price: 60,
+        icon: "🗣️"
+    },
+    {
+        title: "Islamic Studies & Seerah",
+        level: "All Levels",
+        description: "Comprehensive lessons on the life of Prophet Muhammad (PBUH) and foundational Islamic jurisprudence.",
+        price: 45,
+        icon: "🕌"
+    }
+];
+
+const dummyInstructors = [
+    {
+        name: "Sheikh Abdullah Al-Masri",
+        rank: "Senior Qari",
+        schedule: "Mon, Wed, Fri (18:00 - 21:00)",
+        attendance: 98,
+        salary: "$1,500"
+    },
+    {
+        name: "Ustadha Fatima Zahra",
+        rank: "Tajweed Specialist",
+        schedule: "Tue, Thu (10:00 - 14:00)",
+        attendance: 100,
+        salary: "$1,200"
+    },
+    {
+        name: "Sheikh Omar Al-Faruq",
+        rank: "Hifz Master",
+        schedule: "Weekends (08:00 - 12:00)",
+        attendance: 95,
+        salary: "$1,800"
+    }
+];
+
+const seedDatabase = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1:27018/quran_academy');
-        console.log('Connected to seed DB');
+        console.log(`Connecting to MongoDB at: ${MONGO_URI}`);
+        await mongoose.connect(MONGO_URI);
+        console.log("Connected to MongoDB successfully!");
 
+        // Clear existing data to avoid duplicates during seeding
+        console.log("Clearing existing data...");
         await Course.deleteMany({});
         await Instructor.deleteMany({});
 
-        const instructor = new Instructor({
-            name: 'Sheikh Mahmoud',
-            rank: 'Grand Master Qari',
-            schedule: 'Mon, Wed, Fri',
-            attendance: 100,
-            salary: '2500'
-        });
-        await instructor.save();
+        // Insert new dummy data
+        console.log("Inserting dummy courses...");
+        await Course.insertMany(dummyCourses);
 
-        const courses = [
-            {
-                title: "Noorani Qaida for Beginners",
-                level: "Kids (4-8 Years)",
-                description: "The perfect start for children to learn Arabic alphabets and basic pronunciation rules.",
-                price: 40,
-                icon: "✨"
-            },
-            {
-                title: "Tajweed Mastery Program",
-                level: "Adults (Intermediate)",
-                description: "Master the rules of Tajweed and beautify your recitation with certified instructors.",
-                price: 60,
-                icon: "📖"
-            },
-            {
-                title: "Hifz (Memorization) Track",
-                level: "All Ages",
-                description: "Intensive memorization program with daily tracking and rigorous revision sessions.",
-                price: 80,
-                icon: "🕌"
-            }
-        ];
+        console.log("Inserting dummy instructors...");
+        await Instructor.insertMany(dummyInstructors);
 
-        await Course.insertMany(courses);
-        console.log('Database seeded successfully!');
-        process.exit(0);
-    } catch (err) {
-        console.error(err);
+        console.log("Database seeded successfully! 🌱");
+        process.exit();
+    } catch (error) {
+        console.error("Error seeding database:", error);
         process.exit(1);
     }
 };
 
-seedDB();
+seedDatabase();

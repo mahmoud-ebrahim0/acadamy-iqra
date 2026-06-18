@@ -12,6 +12,8 @@ import FAQSection from '../../components/FAQSection';
 import TestimonialsSection from '../../components/TestimonialsSection';
 import Footer from '../../components/Footer';
 import ConsultationModal from '../../components/ConsultationModal';
+import DailyInspiration from '../../components/DailyInspiration';
+import PrayerTimesWidget from '../../components/PrayerTimesWidget';
 
 const ClientHome = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,6 +25,11 @@ const ClientHome = () => {
       <div id="hero"><HeroSection onBookTrial={() => setIsModalOpen(true)} /></div>
       <LiveStatsSection />
       
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <DailyInspiration />
+        <PrayerTimesWidget />
+      </div>
+
       <div id="courses"><CoursesSection /></div>
       <PricingSection openModal={() => setIsModalOpen(true)} />
       

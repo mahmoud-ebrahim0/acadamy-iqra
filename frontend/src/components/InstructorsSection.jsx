@@ -5,18 +5,16 @@ const InstructorsSection = () => {
   const [playingId, setPlayingId] = useState(null);
 
   useEffect(() => {
-    // Fetch from real Mongoose Backend
-    fetch('http://localhost:5000/api/client/instructors')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setInstructors(data);
-        } else {
-          console.error("Expected array but got:", data);
-          setInstructors([]);
-        }
-      })
-      .catch(err => console.error("Error fetching instructors:", err));
+    // Mockup Data to fill the site
+    const mockupInstructors = [
+      { _id: '1', name: 'Sheikh Ahmed Al-Azhari', rank: 'Senior Qari & Ijazah Holder', imageUrl: '' },
+      { _id: '2', name: 'Sheikh Mahmoud', rank: 'Specialist in 10 Qira\'at', imageUrl: '' },
+      { _id: '3', name: 'Ustazah Fatima', rank: 'Senior Tajweed Expert (Female)', imageUrl: '' },
+      { _id: '4', name: 'Ustadh Omar', rank: 'Quran Foundation Tutor', imageUrl: '' },
+      { _id: '5', name: 'Ustazah Aisha', rank: 'Hifz Instructor (Female)', imageUrl: '' },
+      { _id: '6', name: 'Sheikh Bilal', rank: 'Islamic Studies Tutor', imageUrl: '' }
+    ];
+    setInstructors(mockupInstructors);
   }, []);
   
   const handlePlay = (id) => {
