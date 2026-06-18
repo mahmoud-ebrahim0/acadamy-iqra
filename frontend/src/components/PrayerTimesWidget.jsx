@@ -19,7 +19,7 @@ const PrayerTimesWidget = () => {
 
   if (loading || !timings) return null;
 
-  const names = { Fajr: 'الفجر', Sunrise: 'الشروق', Dhuhr: 'الظهر', Asr: 'العصر', Maghrib: 'المغرب', Isha: 'العشاء' };
+  const names = { Fajr: 'Fajr', Sunrise: 'Sunrise', Dhuhr: 'Dhuhr', Asr: 'Asr', Maghrib: 'Maghrib', Isha: 'Isha' };
   const targetPrayers = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
   return (
@@ -37,7 +37,7 @@ const PrayerTimesWidget = () => {
       zIndex: 10
     }}>
       <h3 style={{ color: '#d4af37', marginBottom: '1.5rem', fontSize: '1.5rem', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>
-        مواقيت الصلاة <span style={{fontSize: '1rem', color: '#888'}}>(بتوقيت القاهرة)</span>
+        Prayer Times <span style={{fontSize: '1rem', color: '#888'}}>(Cairo Time)</span>
       </h3>
       <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '1.5rem' }}>
         {targetPrayers.map(prayer => (
