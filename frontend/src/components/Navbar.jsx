@@ -83,12 +83,9 @@ const Navbar = () => {
         <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
           <li><a href="#hero" onClick={(e) => handleScrollTo(e, 'hero')}>Home</a></li>
           <li><a href="#courses" onClick={(e) => handleScrollTo(e, 'courses')}>Courses</a></li>
-          <li><a href="#instructors" onClick={(e) => handleScrollTo(e, 'instructors')}>Instructors</a></li>
           <li><a href="#methodology" onClick={(e) => handleScrollTo(e, 'methodology')}>Sanad</a></li>
           <li><a href="#womens-academy" onClick={(e) => handleScrollTo(e, 'womens-academy')}>Sisters</a></li>
           <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>FAQ</a></li>
-          <li><Link to="/radio" onClick={() => setIsOpen(false)} style={{ color: '#d4af37', fontWeight: 'bold' }}>Live Radio</Link></li>
-          <li><Link to="/live-haramain" onClick={() => setIsOpen(false)} style={{ color: '#fff', fontWeight: 'bold' }}>Haramain 🕌</Link></li>
         </ul>
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
           <button onClick={toggleTheme} title="Toggle Daylight/Cosmic Theme" style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', transition: 'transform 0.3s', transform: theme === 'light' ? 'rotate(-20deg)' : 'rotate(0)' }}>
@@ -101,8 +98,8 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Login</Link>
-              <Link to="/signup" className="btn btn-accent login-btn">Sign Up</Link>
+              <Link to="/login" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 'bold' }}>Login</Link>
+              <Link to="/signup" className="btn btn-accent login-btn" style={{ borderRadius: '50px', padding: '0.6rem 1.5rem' }}>Book Free Trial</Link>
             </>
           )}
         </div>
