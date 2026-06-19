@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-import logo from '../assets/tarteel-logo.png';
+import logo from '../assets/tarteel-logo-maroon.png';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
@@ -63,12 +62,7 @@ const Navbar = () => {
     }
   };
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
+
 
   return (
     <nav className={`navbar ${showNavbar ? '' : 'navbar-hidden'}`}>
@@ -88,9 +82,6 @@ const Navbar = () => {
           <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>FAQ</a></li>
         </ul>
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
-          <button onClick={toggleTheme} title="Toggle Daylight/Cosmic Theme" style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', transition: 'transform 0.3s', transform: theme === 'light' ? 'rotate(-20deg)' : 'rotate(0)' }}>
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           {token ? (
             <>
               <Link to="/dashboard" style={{ color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.5)', fontWeight: 'bold', textDecoration: 'none' }}>Hi, {userName?.split(' ')[0]}</Link>

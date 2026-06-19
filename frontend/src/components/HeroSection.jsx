@@ -1,14 +1,25 @@
 import React from 'react';
+import heroBg from '../assets/hero-bg.png';
 
 const HeroSection = ({ onBookTrial }) => {
   return (
-    <section className="hero-cosmic" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: '0 5%' }}>
+    <section className="hero-section" style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      position: 'relative', 
+      overflow: 'hidden', 
+      padding: '0 5%',
+      background: `url(${heroBg}) no-repeat center center/cover`
+    }}>
       
-      <div className="cosmic-background">
-        <div className="stars"></div>
-        <div className="twinkling"></div>
-        <div className="glow"></div>
-      </div>
+      {/* Subtle white overlay for better text readability */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        zIndex: 1
+      }}></div>
       
       {/* Asymmetrical Layout */}
       <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -55,7 +66,7 @@ const HeroSection = ({ onBookTrial }) => {
               A profound journey of spiritual and linguistic excellence.
             </p>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <button className="btn btn-accent" onClick={onBookTrial} style={{ padding: '1.2rem 2.5rem', fontSize: '1.2rem' }}>Begin Journey</button>
+              <button className="btn btn-accent" onClick={onBookTrial} style={{ padding: '1.2rem 2.5rem', fontSize: '1.2rem', borderRadius: '50px', background: 'var(--primary-color)', color: 'white', border: 'none' }}>Begin Journey</button>
             </div>
           </div>
 
@@ -63,33 +74,16 @@ const HeroSection = ({ onBookTrial }) => {
           <div style={{ flex: '1 1 300px', textAlign: 'right', paddingBottom: '2rem' }}>
             <div style={{ display: 'inline-block', textAlign: 'right', borderRight: '4px solid var(--primary-color)', paddingRight: '2rem' }}>
               <span className="celestial-verse" style={{ display: 'block', fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--primary-color)', marginBottom: '1rem' }}>
-                وَجَعَلْنَا السَّمَاءَ سَقْفًا مَّحْفُوظًا
+                اقْرَأْ وَرَبُّكَ الْأَكْرَمُ
               </span>
               <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '1.1rem' }}>
-                "And We made the sky a protected ceiling."<br/>(Quran 21:32)
+                "Read, and your Lord is the most Generous."<br/>(Quran 96:3)
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Subtle Silhouette elements at bottom */}
-      <div className="silhouette-container" style={{ opacity: 0.4 }}>
-        <div className="person-silhouette"></div>
-        <div className="mountains-silhouette"></div>
-      </div>
-
-      {/* Embedded Style for Glowing Verse */}
-      <style>{`
-        @keyframes intense-glow {
-          0% { text-shadow: 0 0 10px rgba(250, 204, 21, 0.5), 0 0 20px rgba(250, 204, 21, 0.3); }
-          50% { text-shadow: 0 0 20px rgba(250, 204, 21, 0.9), 0 0 40px rgba(250, 204, 21, 0.6), 0 0 60px rgba(255, 255, 255, 0.4); }
-          100% { text-shadow: 0 0 10px rgba(250, 204, 21, 0.5), 0 0 20px rgba(250, 204, 21, 0.3); }
-        }
-        .celestial-verse {
-          animation: intense-glow 4s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   );
 };

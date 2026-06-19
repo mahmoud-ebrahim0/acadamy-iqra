@@ -4,14 +4,6 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
@@ -33,9 +25,7 @@ const AdminLayout = () => {
           <Link to="/admin" className={isActive('/admin')}>📊 Overview</Link>
           <Link to="/admin/courses" className={isActive('/admin/courses')}>📚 Manage Courses</Link>
           <Link to="/admin/instructors" className={isActive('/admin/instructors')}>👨‍🏫 Manage Instructors</Link>
-          <button onClick={toggleTheme} style={{ marginTop: 'auto', background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', textAlign: 'left', fontWeight: '600', padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '1rem' }}>
-            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
+
           <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', textAlign: 'left', fontWeight: '600', padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '1rem' }}>🚪 Logout</button>
         </div>
       </div>

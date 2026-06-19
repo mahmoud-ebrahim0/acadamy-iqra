@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
 :root {
-  --primary-color: #1e3a8a; /* Deep Navy Blue */
-  --secondary-color: #0f172a; /* Slate 900 */
-  --accent-color: #d4af37; /* Elegant Gold */
-  --accent-hover: #b48e24;
-  --bg-color: #f8fafc; /* Clean Off-White */
-  --bg-secondary: #f1f5f9;
-  --text-color: #334155; /* Dark Slate */
+  --primary-color: #7A1B29; /* Deep Royal Maroon */
+  --secondary-color: #4A0E17; /* Very Dark Maroon */
+  --accent-color: #D4AF37; /* Elegant Gold */
+  --accent-hover: #B48E24;
+  --bg-color: #FAFAFA; /* Very Clean Off-White */
+  --bg-secondary: #F3F4F6;
+  --text-color: #1e293b; /* Dark Slate */
   --text-muted: #64748b;
   --card-bg: #ffffff; /* Pure White */
   --white: #ffffff;
