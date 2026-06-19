@@ -97,4 +97,36 @@ router.get('/enrollments', async (req, res) => {
     }
 });
 
+// Update Enrollment (e.g. Payment Status)
+router.put('/enrollments/:id', async (req, res) => {
+    try {
+        const { paymentStatus } = req.body;
+        const updatedEnrollment = await Enrollment.findByIdAndUpdate(
+            req.params.id,
+            { paymentStatus },
+            { new: true }
+        ).populate('student', 'name email').populate('course', 'title');
+        
+        if (!updatedEnrollment) {
+            return res.status(404).json({ message: 'Enrollment not found' });
+        }
+        res.json(updatedEnrollment);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Delete Enrollment
+router.delete('/enrollments/:id', async (req, res) => {
+    try {
+        const deletedEnrollment = await Enrollment.findByIdAndDelete(req.params.id);
+        if (!deletedEnrollment) {
+            return res.status(404).json({ message: 'Enrollment not found' });
+        }
+        res.json({ message: 'Enrollment deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 export default router;
