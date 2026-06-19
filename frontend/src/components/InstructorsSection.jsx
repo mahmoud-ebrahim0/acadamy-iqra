@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 const InstructorsSection = () => {
   const [instructors, setInstructors] = useState([]);
-  const [playingId, setPlayingId] = useState(null);
 
   useEffect(() => {
     // Mockup Data to fill the site
@@ -17,24 +16,6 @@ const InstructorsSection = () => {
     setInstructors(mockupInstructors);
   }, []);
   
-  const handlePlay = (id) => {
-    if (playingId === id) {
-      setPlayingId(null);
-      const audioEl = document.getElementById(`audio-${id}`);
-      if (audioEl) audioEl.pause();
-    } else {
-      if (playingId) {
-        const currentAudio = document.getElementById(`audio-${playingId}`);
-        if (currentAudio) currentAudio.pause();
-      }
-      setPlayingId(id);
-      const audioEl = document.getElementById(`audio-${id}`);
-      if (audioEl) {
-        audioEl.currentTime = 0;
-        audioEl.play().catch(e => console.log("Audio play blocked", e));
-      }
-    }
-  };
 
   // Dynamically assign an image based on the instructor's name/title
   const getFallbackImage = (name) => {
@@ -84,13 +65,6 @@ const InstructorsSection = () => {
                   </div>
                   <h4 style={{ color: 'var(--text-color)', fontSize: '1.4rem', marginBottom: '0.5rem' }}>{inst.name}</h4>
                   <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>{inst.rank}</p>
-                  
-                  {/* Dummy audio just for UI demonstration */}
-                  <audio id={`audio-${inst._id}`} src="https://server8.mp3quran.net/afs/001.mp3" onEnded={() => setPlayingId(null)} />
-                  <button className="btn-audio" onClick={() => handlePlay(inst._id)}>
-                    <span style={{ fontSize: '1.2rem' }}>{playingId === inst._id ? '⏸️' : '▶️'}</span> 
-                    {playingId === inst._id ? 'Playing...' : 'Listen to Recitation'}
-                  </button>
                 </div>
               ))}
             </div>
