@@ -78,7 +78,6 @@ const Navbar = () => {
           <li><a href="#hero" onClick={(e) => handleScrollTo(e, 'hero')}>Home</a></li>
           <li><a href="#courses" onClick={(e) => handleScrollTo(e, 'courses')}>Courses</a></li>
           <li><a href="#methodology" onClick={(e) => handleScrollTo(e, 'methodology')}>Sanad</a></li>
-          <li><a href="#womens-academy" onClick={(e) => handleScrollTo(e, 'womens-academy')}>Sisters</a></li>
           <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>FAQ</a></li>
         </ul>
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
