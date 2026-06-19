@@ -149,7 +149,7 @@ const InstructorDashboard = () => {
             </div>
             <div className="stat-card" style={{ background: 'var(--card-bg)', padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
               <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '1.1rem' }}>Upcoming Classes</h3>
-              <div style={{ fontSize: '3.5rem', color: '#10b981', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{schedule.length}</div>
+              <div style={{ fontSize: '3.5rem', color: '#10b981', fontWeight: 'bold', fontFamily: 'var(--font-heading)', lineHeight: '1' }}>{students.filter(s => s.scheduleTime).length}</div>
             </div>
           </div>
         )}
@@ -157,18 +157,18 @@ const InstructorDashboard = () => {
         {/* --- VIEW: SCHEDULE --- */}
         {activeTab === 'schedule' && (
           <div style={{ display: 'grid', gap: '1.5rem' }}>
-            {schedule.length > 0 ? schedule.map(cls => (
-              <div key={cls._id} style={{ 
+            {students.filter(s => s.scheduleTime).length > 0 ? students.filter(s => s.scheduleTime).map(studentEnr => (
+              <div key={studentEnr._id} style={{ 
                 background: 'var(--card-bg)', padding: '1.5rem 2rem', borderRadius: '1rem', 
                 border: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' 
               }}>
                 <div>
-                  <h4 style={{ fontSize: '1.2rem', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>{cls.student?.name}</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{cls.enrollment?.course?.title} • <strong style={{ color: 'var(--text-color)' }}>{cls.time}</strong></p>
+                  <h4 style={{ fontSize: '1.2rem', color: 'var(--primary-color)', marginBottom: '0.3rem' }}>{studentEnr.student?.name}</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{studentEnr.course?.title} • <strong style={{ color: 'var(--text-color)' }}>{studentEnr.scheduleTime}</strong></p>
                 </div>
                 <div>
-                  {cls.status === 'live' ? (
-                    <a href={cls.zoomLink} target="_blank" rel="noreferrer" className="btn" style={{ 
+                  {studentEnr.zoomLink ? (
+                    <a href={studentEnr.zoomLink} target="_blank" rel="noreferrer" className="btn" style={{ 
                       background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderColor: '#10b981', 
                       animation: 'pulse-glow-green 2s infinite', padding: '0.8rem 2rem', textDecoration: 'none', display: 'inline-block' 
                     }}>
@@ -176,12 +176,12 @@ const InstructorDashboard = () => {
                     </a>
                   ) : (
                     <button className="btn btn-outline" style={{ borderColor: 'var(--text-muted)', color: 'var(--text-muted)', padding: '0.8rem 2rem', cursor: 'not-allowed' }}>
-                      Wait for Time
+                      No Link Provided
                     </button>
                   )}
                 </div>
               </div>
-            )) : <p style={{ color: 'var(--text-muted)' }}>No upcoming classes.</p>}
+            )) : <p style={{ color: 'var(--text-muted)' }}>No upcoming scheduled classes found.</p>}
           </div>
         )}
 

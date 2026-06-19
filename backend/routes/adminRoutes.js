@@ -127,12 +127,14 @@ router.get('/enrollments', async (req, res) => {
 // Update Enrollment (e.g. Payment Status)
 router.put('/enrollments/:id', async (req, res) => {
     try {
-        const { paymentStatus, instructor } = req.body;
+        const { paymentStatus, instructor, scheduleTime, zoomLink } = req.body;
         
         // Build update object based on what was sent
         const updateData = {};
         if (paymentStatus) updateData.paymentStatus = paymentStatus;
         if (instructor !== undefined) updateData.instructor = instructor; // allow null
+        if (scheduleTime !== undefined) updateData.scheduleTime = scheduleTime;
+        if (zoomLink !== undefined) updateData.zoomLink = zoomLink;
 
         const updatedEnrollment = await Enrollment.findByIdAndUpdate(
             req.params.id,

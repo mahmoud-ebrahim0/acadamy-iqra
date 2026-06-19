@@ -10,6 +10,8 @@ const DashboardOverview = () => {
   const [editingEnr, setEditingEnr] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [newInstructor, setNewInstructor] = useState('');
+  const [newSchedule, setNewSchedule] = useState('');
+  const [newZoomLink, setNewZoomLink] = useState('');
 
   const fetchDashboardData = async () => {
     try {
@@ -53,6 +55,8 @@ const DashboardOverview = () => {
     setEditingEnr(enr);
     setNewStatus(enr.paymentStatus);
     setNewInstructor(enr.instructor?._id || '');
+    setNewSchedule(enr.scheduleTime || '');
+    setNewZoomLink(enr.zoomLink || '');
   };
 
   const handleUpdate = async (e) => {
@@ -63,7 +67,9 @@ const DashboardOverview = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           paymentStatus: newStatus,
-          instructor: newInstructor === '' ? null : newInstructor
+          instructor: newInstructor === '' ? null : newInstructor,
+          scheduleTime: newSchedule,
+          zoomLink: newZoomLink
         })
       });
       setEditingEnr(null);
@@ -166,7 +172,7 @@ const DashboardOverview = () => {
                 </select>
               </div>
               
-              <div className="form-group" style={{ marginBottom: '2rem' }}>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Assign Instructor</label>
                 <select className="form-control" value={newInstructor} onChange={e => setNewInstructor(e.target.value)} style={{ background: '#0B1930' }}>
                   <option value="">-- Unassigned (Pending) --</option>
@@ -174,6 +180,16 @@ const DashboardOverview = () => {
                     <option key={inst._id} value={inst._id}>{inst.name} ({inst.rank})</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Schedule Time</label>
+                <input type="text" className="form-control" value={newSchedule} onChange={e => setNewSchedule(e.target.value)} placeholder="e.g. Mon, Wed 5:00 PM" style={{ background: '#0B1930' }} />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label className="form-label">Zoom Link</label>
+                <input type="url" className="form-control" value={newZoomLink} onChange={e => setNewZoomLink(e.target.value)} placeholder="https://zoom.us/j/..." style={{ background: '#0B1930' }} />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
