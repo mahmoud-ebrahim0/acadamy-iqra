@@ -78,7 +78,7 @@ const CoursesSection = () => {
                       <span style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.3rem' }}>
                         {course.price ? `$${course.price}` : 'Free'}
                       </span>
-                      <button onClick={() => navigate(`/checkout/${course._id}`, { state: { course } })} className="btn" style={{ padding: '0.5rem 1.5rem' }}>Enroll Now</button>
+                      <button onClick={() => navigate(`/course/${course._id}`, { state: { course } })} className="btn" style={{ padding: '0.5rem 1.5rem' }}>View Details</button>
                     </div>
                   </div>
                 </div>

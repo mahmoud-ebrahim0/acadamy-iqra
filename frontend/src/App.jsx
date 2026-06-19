@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import ClientHome from './pages/client/ClientHome';
 import AuthPage from './pages/client/AuthPage';
 import Checkout from './pages/client/Checkout';
+import CourseDetails from './pages/client/CourseDetails';
 import StudentDashboard from './pages/client/StudentDashboard';
 import RadioPage from './pages/client/RadioPage';
 import LiveHaramainPage from './pages/client/LiveHaramainPage';
@@ -39,6 +40,7 @@ function App() {
           <Route path="/live-haramain" element={<LiveHaramainPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
+          <Route path="/course/:courseId" element={<CourseDetails />} />
           <Route path="/checkout/:courseId" element={<Checkout />} />
           <Route path="/dashboard" element={<UserProtectedRoute><StudentDashboard /></UserProtectedRoute>} />
           
