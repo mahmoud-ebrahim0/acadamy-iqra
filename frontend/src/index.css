@@ -182,6 +182,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   text-decoration: none;
   color: var(--primary-color);
   font-weight: 700;
+  font-size: 1.15rem;
   transition: color 0.3s ease;
   position: relative;
 }
