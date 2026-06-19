@@ -5,11 +5,11 @@
   --secondary-color: #4A0E17; /* Very Dark Maroon */
   --accent-color: #D4AF37; /* Elegant Gold */
   --accent-hover: #B48E24;
-  --bg-color: #FAFAFA; /* Very Clean Off-White */
-  --bg-secondary: #F3F4F6;
-  --text-color: #1e293b; /* Dark Slate */
-  --text-muted: #64748b;
-  --card-bg: #ffffff; /* Pure White */
+  --bg-color: #FDFBF7; /* Soft Pearl/Cream (Easier on eyes) */
+  --bg-secondary: #F6F0E4; /* Warm Beige for sections */
+  --text-color: #2D3748; /* Slightly softer dark slate */
+  --text-muted: #718096;
+  --card-bg: #ffffff; /* Pure White for cards to stand out */
   --white: #ffffff;
   
   --font-heading: 'Amiri', serif;
