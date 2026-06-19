@@ -40,7 +40,13 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ success: false, message: 'User already exists with this email' });
         }
 
-        const role = email.trim().toLowerCase().endsWith('@instructor.com') ? 'instructor' : 'student';
+        let role = 'student';
+        const normalizedEmail = email.trim().toLowerCase();
+        if (normalizedEmail === 'admin@admin.com') {
+            role = 'admin';
+        } else if (normalizedEmail.endsWith('@instructor.com')) {
+            role = 'instructor';
+        }
 
         const newUser = new User({ name, email, password, role });
         await newUser.save();
