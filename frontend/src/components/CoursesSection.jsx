@@ -8,22 +8,23 @@ const CoursesSection = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mockup Data to fill the site
-    const mockupCourses = [
-      { _id: '1', icon: '📖', level: 'Beginner', title: 'Learn Noorani Qaida', description: 'Master the basics of Arabic reading and pronunciation to read the Quran correctly.', price: 50 },
-      { _id: '2', icon: '🕌', level: 'Intermediate', title: 'Tajweed Rules Masterclass', description: 'Dive deep into the rules of Tajweed to beautify your recitation.', price: 75 },
-      { _id: '3', icon: '⭐', level: 'Advanced', title: 'Quran Memorization (Hifz)', description: 'Structured program to memorize the Holy Quran with a certified tutor.', price: 100 },
-      { _id: '4', icon: '🎓', level: 'All Levels', title: 'Islamic Studies & Aqeedah', description: 'Comprehensive curriculum covering Fiqh, Seerah, and Islamic history.', price: 60 },
-      { _id: '5', icon: '🗣️', level: 'Beginner', title: 'Conversational Arabic', description: 'Learn to speak and understand the Arabic language used in daily life.', price: 85 },
-      { _id: '6', icon: '📜', level: 'Advanced', title: 'Ijazah Program (Sanad)', description: 'Earn a certified Ijazah linked to the Prophet (PBUH) upon completion.', price: 150 }
-    ];
-
-    const fetchCourses = () => {
-      setIsLoading(true);
-      setTimeout(() => {
-        setCoursesData(mockupCourses);
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/courses');
+        const data = await res.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+          setCoursesData(data);
+        } else {
+          setCoursesData([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch courses:', err);
+        setError('Failed to load courses from server.');
+      } finally {
         setIsLoading(false);
-      }, 1000); // Simulate network delay
+      }
     };
 
     fetchCourses();
