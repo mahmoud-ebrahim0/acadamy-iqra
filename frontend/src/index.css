@@ -975,7 +975,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .fab-consultation {
   position: fixed;
   bottom: 2rem;
-  right: 2rem;
+  left: 2rem; /* Moved to left to make room for WhatsApp on the right */
   background: linear-gradient(135deg, #facc15, #f59e0b, #ef4444);
   background-size: 200% 200%;
   color: #111827;
@@ -997,6 +997,41 @@ h1, h2, h3, h4, h5, h6, .section-title {
   transform: translateY(-8px) scale(1.1);
   box-shadow: 0 20px 40px rgba(239, 68, 68, 0.8);
   animation-play-state: paused;
+}
+
+/* WhatsApp Floating Button */
+.whatsapp-float {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #25d366;
+  color: #fff;
+  border-radius: 50px;
+  text-align: center;
+  font-size: 35px;
+  box-shadow: 0 10px 30px rgba(37, 211, 102, 0.5);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  animation: float-bounce 3s infinite ease-in-out;
+}
+
+.whatsapp-float:hover {
+  background-color: #128C7E;
+  transform: scale(1.1);
+  box-shadow: 0 15px 35px rgba(37, 211, 102, 0.7);
+  animation-play-state: paused;
+}
+
+@keyframes float-bounce {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
 }
 
 @keyframes gradient-shift {
