@@ -58,6 +58,32 @@ router.post('/instructors', async (req, res) => {
     }
 });
 
+// Update an instructor
+router.put('/instructors/:id', async (req, res) => {
+    try {
+        const updatedInstructor = await Instructor.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
+        if (!updatedInstructor) return res.status(404).json({ message: 'Instructor not found' });
+        res.json(updatedInstructor);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Delete an instructor
+router.delete('/instructors/:id', async (req, res) => {
+    try {
+        const deletedInstructor = await Instructor.findByIdAndDelete(req.params.id);
+        if (!deletedInstructor) return res.status(404).json({ message: 'Instructor not found' });
+        res.json({ message: 'Instructor deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // Admin Dashboard stats
 router.get('/stats', async (req, res) => {
     try {
@@ -90,7 +116,8 @@ router.get('/enrollments', async (req, res) => {
     try {
         const enrollments = await Enrollment.find()
             .populate('student', 'name email')
-            .populate('course', 'title');
+            .populate('course', 'title')
+            .populate('instructor', 'name');
         res.json(enrollments);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -100,12 +127,18 @@ router.get('/enrollments', async (req, res) => {
 // Update Enrollment (e.g. Payment Status)
 router.put('/enrollments/:id', async (req, res) => {
     try {
-        const { paymentStatus } = req.body;
+        const { paymentStatus, instructor } = req.body;
+        
+        // Build update object based on what was sent
+        const updateData = {};
+        if (paymentStatus) updateData.paymentStatus = paymentStatus;
+        if (instructor !== undefined) updateData.instructor = instructor; // allow null
+
         const updatedEnrollment = await Enrollment.findByIdAndUpdate(
             req.params.id,
-            { paymentStatus },
+            updateData,
             { new: true }
-        ).populate('student', 'name email').populate('course', 'title');
+        ).populate('student', 'name email').populate('course', 'title').populate('instructor', 'name');
         
         if (!updatedEnrollment) {
             return res.status(404).json({ message: 'Enrollment not found' });

@@ -98,15 +98,11 @@ router.post('/checkout', async (req, res) => {
             await user.save();
         }
 
-        // 2. We need an instructor for the enrollment. For now, assign the first instructor found, or leave null if none.
-        // Or we can find an instructor whose rank matches the course level, but let's just pick one.
-        const instructor = await Instructor.findOne() || null;
-
-        // 3. Create Enrollment
+        // 2. We no longer assign an instructor automatically. The Admin will assign them manually from the dashboard.
         const newEnrollment = new Enrollment({
             student: user._id,
             course: courseId,
-            instructor: instructor ? instructor._id : null,
+            instructor: null, // Set to null initially
             status: 'Pending',
             paymentStatus: paymentMethod === 'Credit Card' ? 'Paid' : 'Pending'
         });
