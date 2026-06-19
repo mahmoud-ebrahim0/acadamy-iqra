@@ -18,8 +18,8 @@ const AuthPage = () => {
 
     try {
       const API_URL = isLogin 
-        ? 'http://localhost:5000/api/client/login'
-        : 'http://localhost:5000/api/client/register';
+        ? 'https://acadamy-iqra-production.up.railway.app/api/client/login'
+        : 'https://acadamy-iqra-production.up.railway.app/api/client/register';
       
       const payload = isLogin ? { email, password } : { name, email, password };
 

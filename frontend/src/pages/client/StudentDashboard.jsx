@@ -14,7 +14,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     if (userId) {
-      fetch(`http://localhost:5000/api/student/dashboard?userId=${userId}`)
+      fetch(`https://acadamy-iqra-production.up.railway.app/api/student/dashboard?userId=${userId}`)
         .then(res => res.json())
         .then(data => {
           setEnrollments(data.enrollments || []);

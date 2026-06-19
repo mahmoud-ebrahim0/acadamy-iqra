@@ -11,7 +11,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       // Use the client login endpoint for normal users
-      const res = await fetch('http://localhost:5000/api/client/login', {
+      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

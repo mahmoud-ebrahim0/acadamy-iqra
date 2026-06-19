@@ -54,7 +54,7 @@ const Checkout = () => {
         paymentMethod
       };
 
-      const res = await fetch('http://localhost:5000/api/client/checkout', {
+      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

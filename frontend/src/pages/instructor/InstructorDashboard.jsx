@@ -19,7 +19,7 @@ const InstructorDashboard = () => {
   const instructorId = localStorage.getItem('userId') || 'demo-instructor-id';
 
   const fetchDashboardData = () => {
-    fetch(`http://localhost:5000/api/instructor/dashboard?instructorId=${instructorId}`)
+    fetch(`https://acadamy-iqra-production.up.railway.app/api/instructor/dashboard?instructorId=${instructorId}`)
       .then(res => res.json())
       .then(data => {
         if(data.schedule) setSchedule(data.schedule);
@@ -47,7 +47,7 @@ const InstructorDashboard = () => {
     setStudents(students.map(s => s._id === enrollmentId ? { ...s, currentAyahOrLesson: newProgress } : s));
     
     // Update backend
-    fetch(`http://localhost:5000/api/instructor/progress/${enrollmentId}`, {
+    fetch(`https://acadamy-iqra-production.up.railway.app/api/instructor/progress/${enrollmentId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentAyahOrLesson: newProgress })
@@ -71,7 +71,7 @@ const InstructorDashboard = () => {
       date: new Date().toISOString().split('T')[0]
     };
 
-    fetch('http://localhost:5000/api/instructor/payouts', {
+    fetch('https://acadamy-iqra-production.up.railway.app/api/instructor/payouts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payoutData)
