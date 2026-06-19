@@ -17,7 +17,16 @@ const CoursesSection = () => {
         if (Array.isArray(data) && data.length > 0) {
           setCoursesData(data);
         } else {
-          setCoursesData([]);
+          // Fallback mockup data with valid MongoDB ObjectIds (24 hex characters)
+          const mockupCourses = [
+            { _id: '64b123456789012345678901', icon: '📖', level: 'Beginner', title: 'Learn Noorani Qaida', description: 'Master the basics of Arabic reading and pronunciation to read the Quran correctly.', price: 50 },
+            { _id: '64b123456789012345678902', icon: '🕌', level: 'Intermediate', title: 'Tajweed Rules Masterclass', description: 'Dive deep into the rules of Tajweed to beautify your recitation.', price: 75 },
+            { _id: '64b123456789012345678903', icon: '⭐', level: 'Advanced', title: 'Quran Memorization (Hifz)', description: 'Structured program to memorize the Holy Quran with a certified tutor.', price: 100 },
+            { _id: '64b123456789012345678904', icon: '🎓', level: 'All Levels', title: 'Islamic Studies & Aqeedah', description: 'Comprehensive curriculum covering Fiqh, Seerah, and Islamic history.', price: 60 },
+            { _id: '64b123456789012345678905', icon: '🗣️', level: 'Beginner', title: 'Conversational Arabic', description: 'Learn to speak and understand the Arabic language used in daily life.', price: 85 },
+            { _id: '64b123456789012345678906', icon: '📜', level: 'Advanced', title: 'Ijazah Program (Sanad)', description: 'Earn a certified Ijazah linked to the Prophet (PBUH) upon completion.', price: 150 }
+          ];
+          setCoursesData(mockupCourses);
         }
       } catch (err) {
         console.error('Failed to fetch courses:', err);
