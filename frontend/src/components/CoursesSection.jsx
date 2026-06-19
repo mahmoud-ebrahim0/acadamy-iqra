@@ -69,16 +69,16 @@ const CoursesSection = () => {
                     <span className="course-age">{course.level}</span>
                     <h3 className="course-title">{course.title}</h3>
                     {course.description ? (
-                      <p style={{marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.95rem'}}>{course.description.length > 80 ? course.description.substring(0, 80) + '...' : course.description}</p>
+                      <p style={{marginBottom: '1.5rem', color: 'var(--text-muted)', fontSize: '0.95rem'}}>{course.description.length > 80 ? course.description.substring(0, 80) + '...' : course.description}</p>
                     ) : (
-                      <p style={{marginBottom: '1rem', color: 'var(--text-muted)'}}>Course</p>
+                      <p style={{marginBottom: '1.5rem', color: 'var(--text-muted)'}}>Course</p>
                     )}
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem' }}>
-                      <span style={{ color: 'var(--primary-color)', fontWeight: 'bold', fontSize: '1.3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '1.5rem' }}>
+                      <span style={{ color: 'var(--accent-color)', fontWeight: 'bold', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>
                         {course.price ? `$${course.price}` : 'Free'}
                       </span>
-                      <button onClick={() => navigate(`/course/${course._id}`, { state: { course } })} className="btn" style={{ padding: '0.5rem 1.5rem' }}>View Details</button>
+                      <button onClick={() => navigate(`/course/${course._id}`, { state: { course } })} className="btn-outline-primary">View Details</button>
                     </div>
                   </div>
                 </div>
