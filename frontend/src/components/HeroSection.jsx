@@ -74,10 +74,10 @@ const HeroSection = ({ onBookTrial }) => {
           <div style={{ flex: '1 1 300px', textAlign: 'right', paddingBottom: '2rem' }}>
             <div style={{ display: 'inline-block', textAlign: 'right', borderRight: '4px solid var(--primary-color)', paddingRight: '2rem' }}>
               <span className="celestial-verse" style={{ display: 'block', fontSize: '2.5rem', fontFamily: 'var(--font-heading)', color: 'var(--primary-color)', marginBottom: '1rem' }}>
-                اقْرَأْ وَرَبُّكَ الْأَكْرَمُ
+                وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا
               </span>
               <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '1.1rem' }}>
-                "Read, and your Lord is the most Generous."<br/>(Quran 96:3)
+                "And recite the Quran with measured recitation."<br/>(Quran 73:4)
               </p>
             </div>
           </div>
