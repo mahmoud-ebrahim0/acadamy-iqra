@@ -41,7 +41,13 @@ const AuthPage = () => {
         // Currently, our User model might not send a specific role if not populated deeply, 
         // but we assume if it works, and it's admin@admin.com it's admin for the demo.
         // Or if the backend returns a role, we use it. 
-        const role = data.user?.role || (email.trim().toLowerCase() === 'admin@admin.com' ? 'admin' : 'student');
+        let role = data.user?.role || 'student';
+        const normalizedEmail = email.trim().toLowerCase();
+        if (normalizedEmail === 'admin@admin.com') {
+          role = 'admin';
+        } else if (normalizedEmail.endsWith('@instructor.com')) {
+          role = 'instructor';
+        }
 
         if (role === 'admin') {
           localStorage.setItem('adminToken', data.token);
