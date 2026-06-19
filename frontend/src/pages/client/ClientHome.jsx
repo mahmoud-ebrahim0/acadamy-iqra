@@ -5,7 +5,6 @@ import LiveStatsSection from '../../components/LiveStatsSection';
 import CoursesSection from '../../components/CoursesSection';
 import PricingSection from '../../components/PricingSection';
 import MethodologySection from '../../components/MethodologySection';
-import WomensAcademySection from '../../components/WomensAcademySection';
 import InstructorsSection from '../../components/InstructorsSection';
 import StarsOfTarteelSection from '../../components/StarsOfTarteelSection';
 import FAQSection from '../../components/FAQSection';
@@ -31,7 +30,6 @@ const ClientHome = () => {
       <PricingSection openModal={() => setIsModalOpen(true)} />
       
       <MethodologySection />
-      <WomensAcademySection />
       
       <div id="instructors"><InstructorsSection /></div>
       <StarsOfTarteelSection />
