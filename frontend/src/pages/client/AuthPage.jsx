@@ -46,6 +46,9 @@ const AuthPage = () => {
         if (role === 'admin') {
           localStorage.setItem('adminToken', data.token);
           window.location.href = '/admin';
+        } else if (role === 'instructor') {
+          localStorage.setItem('userToken', data.token);
+          window.location.href = '/instructor';
         } else {
           localStorage.setItem('userToken', data.token);
           window.location.href = '/dashboard';

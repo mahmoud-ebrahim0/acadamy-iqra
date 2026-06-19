@@ -40,11 +40,24 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ success: false, message: 'User already exists with this email' });
         }
 
-        const newUser = new User({ name, email, password });
+        const role = email.trim().toLowerCase().endsWith('@instructor.com') ? 'instructor' : 'student';
+
+        const newUser = new User({ name, email, password, role });
         await newUser.save();
 
+        if (role === 'instructor') {
+            const newInstructor = new Instructor({
+                _id: newUser._id,
+                name: newUser.name,
+                rank: 'New Instructor',
+                schedule: 'TBD',
+                salary: 'TBD'
+            });
+            await newInstructor.save();
+        }
+
         const token = `user-token-${newUser._id}`;
-        res.status(201).json({ success: true, token, user: { _id: newUser._id, name: newUser.name, email: newUser.email } });
+        res.status(201).json({ success: true, token, user: { _id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role } });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -58,7 +71,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email, password });
         if (user) {
             const token = `user-token-${user._id}`;
-            res.json({ success: true, token, user: { _id: user._id, name: user.name, email: user.email } });
+            res.json({ success: true, token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
         } else {
             res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
