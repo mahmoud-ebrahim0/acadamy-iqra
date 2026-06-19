@@ -66,23 +66,16 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="hero-cosmic" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      {/* Deep Space Background Elements */}
-      <div className="cosmic-background">
-        <div className="stars"></div>
-        <div className="twinkling"></div>
-      </div>
-      <div className="cosmic-swirl swirl-1" style={{ top: '10%', left: '20%' }}></div>
-      <div className="cosmic-swirl swirl-2" style={{ bottom: '10%', right: '20%' }}></div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backgroundColor: 'var(--bg-color)' }}>
 
-      <div style={{ position: 'relative', zIndex: 10, background: 'var(--card-bg)', padding: '3rem', borderRadius: '2rem', boxShadow: '0 0 40px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(250, 204, 21, 0.1)', width: '100%', maxWidth: '450px', backdropFilter: 'blur(15px)', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+      <div style={{ position: 'relative', zIndex: 10, background: 'var(--card-bg)', padding: '3rem', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', width: '100%', maxWidth: '450px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <Link to="/home" style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--primary-color)', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)' }}>
-            <span>Tarteel</span> Academy
+          <Link to="/home" style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--primary-color)', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem', fontFamily: 'var(--font-heading)' }}>
+            Tarteel Academy
           </Link>
-          <h2 style={{ color: 'white', fontSize: '1.8rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.5)' }}>
-            {isLogin ? 'Welcome Back 🚀' : 'Begin Your Journey ✨'}
+          <h2 style={{ color: 'var(--primary-color)', fontSize: '1.8rem', fontFamily: 'var(--font-heading)' }}>
+            {isLogin ? 'Welcome Back' : 'Create an Account'}
           </h2>
         </div>
 
@@ -95,34 +88,34 @@ const AuthPage = () => {
         <form onSubmit={handleAuth}>
           {!isLogin && (
             <div className="form-group">
-              <label className="form-label" style={{ color: '#cbd5e1' }}>Full Name</label>
-              <input type="text" className="form-control" value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Cosmic Explorer" style={{ background: 'rgba(0,0,0,0.4)', borderColor: 'rgba(250, 204, 21, 0.3)' }} />
+              <label className="form-label" style={{ color: 'var(--text-color)' }}>Full Name</label>
+              <input type="text" className="form-control" value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Ahmed Ali" style={{ borderColor: 'rgba(0,0,0,0.1)' }} />
             </div>
           )}
           
           <div className="form-group">
-            <label className="form-label" style={{ color: '#cbd5e1' }}>Email Address</label>
-            <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required placeholder="explorer@galaxy.com" style={{ background: 'rgba(0,0,0,0.4)', borderColor: 'rgba(250, 204, 21, 0.3)' }} />
+            <label className="form-label" style={{ color: 'var(--text-color)' }}>Email Address</label>
+            <input type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} required placeholder="student@example.com" style={{ borderColor: 'rgba(0,0,0,0.1)' }} />
           </div>
           
           <div className="form-group" style={{ marginBottom: '2.5rem' }}>
-            <label className="form-label" style={{ color: '#cbd5e1' }}>Password</label>
-            <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" style={{ background: 'rgba(0,0,0,0.4)', borderColor: 'rgba(250, 204, 21, 0.3)' }} />
+            <label className="form-label" style={{ color: 'var(--text-color)' }}>Password</label>
+            <input type="password" className="form-control" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" style={{ borderColor: 'rgba(0,0,0,0.1)' }} />
           </div>
           
-          <button type="submit" className="btn btn-accent" disabled={loading} style={{ width: '100%', fontSize: '1.2rem', padding: '0.8rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.5)' }}>
-            {loading ? 'Transmitting...' : (isLogin ? 'Login to Dashboard' : 'Create Account')}
+          <button type="submit" className="btn btn-accent" disabled={loading} style={{ width: '100%', fontSize: '1.2rem', padding: '0.8rem', borderRadius: '50px', backgroundColor: 'var(--primary-color)', color: 'white', border: 'none' }}>
+            {loading ? 'Processing...' : (isLogin ? 'Login to Dashboard' : 'Create Account')}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '1.5rem' }}>
+        <div style={{ textAlign: 'center', marginTop: '2rem', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '1.5rem' }}>
           <p style={{ color: 'var(--text-muted)' }}>
-            {isLogin ? "Don't have an account?" : "Already exploring with us?"}
-            <button onClick={toggleAuthMode} type="button" style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: 'bold', marginLeft: '0.5rem', cursor: 'pointer', fontSize: '1rem', textShadow: '0 0 10px rgba(250, 204, 21, 0.3)' }}>
+            {isLogin ? "Don't have an account?" : "Already studying with us?"}
+            <button onClick={toggleAuthMode} type="button" style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: 'bold', marginLeft: '0.5rem', cursor: 'pointer', fontSize: '1rem' }}>
               {isLogin ? 'Sign Up' : 'Login'}
             </button>
           </p>
-          <Link to="/home" style={{ color: '#64748b', textDecoration: 'none', display: 'block', marginTop: '1.5rem', fontSize: '0.9rem' }}>&larr; Abort and Return to Home</Link>
+          <Link to="/home" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'block', marginTop: '1.5rem', fontSize: '0.9rem' }}>&larr; Return to Home</Link>
         </div>
       </div>
     </div>
