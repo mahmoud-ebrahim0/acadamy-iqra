@@ -4,6 +4,14 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
 const StudentDashboard = () => {
+  const formatZoomLink = (link) => {
+    if (!link) return '#';
+    if (!link.startsWith('http://') && !link.startsWith('https://')) {
+      return `https://${link}`;
+    }
+    return link;
+  };
+
   const userName = localStorage.getItem('userName') || 'Student';
   const firstName = userName.split(' ')[0];
   const userId = localStorage.getItem('userId');
@@ -60,12 +68,12 @@ const StudentDashboard = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {enrollments.filter(e => e.scheduleTime).length > 0 ? enrollments.filter(e => e.scheduleTime).map(enr => (
                     <div key={enr._id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--accent-color)' }}>
-                      <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>{enr.course?.title}</h3>
+                      <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>{enr.course?.title || 'Enrolled Course (Title Unavailable)'}</h3>
                       <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1rem' }}>
                         👤 {enr.instructor?.name || 'Pending Instructor'} &nbsp;|&nbsp; 🕒 {enr.scheduleTime}
                       </p>
                       {enr.zoomLink ? (
-                        <a href={enr.zoomLink} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>🎥 Join Zoom Class</a>
+                        <a href={formatZoomLink(enr.zoomLink)} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>🎥 Join Zoom Class</a>
                       ) : (
                         <button className="btn btn-outline" style={{ width: '100%', padding: '0.6rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>No Link Yet</button>
                       )}
@@ -84,7 +92,7 @@ const StudentDashboard = () => {
                   {enrollments.length > 0 ? enrollments.map(enr => (
                     <div key={enr._id}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{enr.course?.title}</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{enr.course?.title || 'Enrolled Course (Title Unavailable)'}</span>
                         <span style={{ color: 'var(--primary-color)' }}>{enr.progressPercentage}%</span>
                       </div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Current Lesson: {enr.currentAyahOrLesson}</div>
