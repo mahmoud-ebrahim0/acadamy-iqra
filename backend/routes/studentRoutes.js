@@ -10,19 +10,13 @@ router.get('/dashboard', async (req, res) => {
     try {
         const userId = req.query.userId;
         
-        // Find all enrollments for this student and populate the related course info
+        // Find all enrollments for this student and populate the related course and instructor info
         const enrollments = await Enrollment.find({ student: userId })
             .populate('course')
             .populate('instructor');
             
-        // Find upcoming classes for this student
-        const upcomingClasses = await ClassSession.find({ student: userId, status: { $in: ['upcoming', 'live'] } })
-            .populate('instructor')
-            .populate({ path: 'enrollment', populate: { path: 'course' } });
-
         res.json({
-            enrollments,
-            upcomingClasses
+            enrollments
         });
     } catch (err) {
         res.status(500).json({ message: err.message });

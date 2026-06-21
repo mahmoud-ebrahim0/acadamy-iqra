@@ -64,6 +64,12 @@ const Navbar = () => {
 
 
 
+  const userRole = localStorage.getItem('userRole');
+
+  let dashboardLink = '/dashboard';
+  if (userRole === 'instructor') dashboardLink = '/instructor-dashboard';
+  if (userRole === 'admin') dashboardLink = '/admin';
+
   return (
     <nav className={`navbar ${showNavbar ? '' : 'navbar-hidden'}`}>
       <div className="container">
@@ -83,7 +89,7 @@ const Navbar = () => {
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
           {token ? (
             <>
-              <Link to="/dashboard" style={{ color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.5)', fontWeight: 'bold', textDecoration: 'none' }}>Hi, {userName?.split(' ')[0]}</Link>
+              <Link to={dashboardLink} style={{ color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.5)', fontWeight: 'bold', textDecoration: 'none' }}>Hi, {userName?.split(' ')[0]}</Link>
               <button onClick={handleLogout} className="btn btn-outline" style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)', padding: '0.4rem 1rem' }}>Logout</button>
             </>
           ) : (

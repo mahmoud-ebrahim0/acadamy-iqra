@@ -9,7 +9,6 @@ const StudentDashboard = () => {
   const userId = localStorage.getItem('userId');
 
   const [enrollments, setEnrollments] = useState([]);
-  const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +17,6 @@ const StudentDashboard = () => {
         .then(res => res.json())
         .then(data => {
           setEnrollments(data.enrollments || []);
-          setUpcomingClasses(data.upcomingClasses || []);
           setLoading(false);
         })
         .catch(err => {
@@ -60,13 +58,17 @@ const StudentDashboard = () => {
                 <h2 style={{ color: 'var(--accent-color)', marginBottom: '1.5rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.4)' }}>📅 Upcoming Classes</h2>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {upcomingClasses.length > 0 ? upcomingClasses.map(cls => (
-                    <div key={cls._id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--accent-color)' }}>
-                      <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>{cls.enrollment?.course?.title}</h3>
+                  {enrollments.filter(e => e.scheduleTime).length > 0 ? enrollments.filter(e => e.scheduleTime).map(enr => (
+                    <div key={enr._id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--accent-color)' }}>
+                      <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>{enr.course?.title}</h3>
                       <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                        👤 {cls.instructor?.name} &nbsp;|&nbsp; 🕒 {cls.date} at {cls.time}
+                        👤 {enr.instructor?.name || 'Pending Instructor'} &nbsp;|&nbsp; 🕒 {enr.scheduleTime}
                       </p>
-                      <a href={cls.zoomLink} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>🎥 Join Zoom Class</a>
+                      {enr.zoomLink ? (
+                        <a href={enr.zoomLink} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>🎥 Join Zoom Class</a>
+                      ) : (
+                        <button className="btn btn-outline" style={{ width: '100%', padding: '0.6rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>No Link Yet</button>
+                      )}
                     </div>
                   )) : (
                     <p style={{ color: 'var(--text-muted)' }}>You have no upcoming classes scheduled.</p>
