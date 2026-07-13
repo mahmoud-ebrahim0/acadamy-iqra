@@ -32,19 +32,21 @@ const ManageCourses = () => {
   const handleAddCourse = async (e) => {
     e.preventDefault();
 
-    const courseData = {
-      title: newCourse.title,
-      level: newCourse.age,
-      description: newCourse.description,
-      price: newCourse.price,
-      icon: '📖', // Fallback for existing UI
-    };
+    const courseData = new FormData();
+    courseData.append('title', newCourse.title);
+    courseData.append('level', newCourse.age);
+    courseData.append('description', newCourse.description);
+    courseData.append('price', newCourse.price);
+    courseData.append('icon', '📖'); // Fallback for existing UI
+    if (newCourse.image) {
+      courseData.append('image', newCourse.image);
+    }
 
     setLoading(true);
     try {
       const res = await fetchWithAuth('/api/admin/courses', {
         method: 'POST',
-        body: JSON.stringify(courseData)
+        body: courseData
       });
       if (res.ok) {
         const savedCourse = await res.json();

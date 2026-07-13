@@ -9,7 +9,8 @@ const enrollmentSchema = new mongoose.Schema({
     progressPercentage: { type: Number, default: 0 },
     currentAyahOrLesson: { type: String, default: 'Beginning' },
     status: { type: String, enum: ['Active', 'Completed', 'Pending'], default: 'Active' },
-    paymentStatus: { type: String, enum: ['Paid', 'Pending', 'Failed'], default: 'Pending' },
+    paymentStatus: { type: String, enum: ['Paid', 'Pending', 'Failed', 'Refunded'], default: 'Pending' },
+    receiptUrl: { type: String, default: '' },
     enrolledAt: { type: Date, default: Date.now }
 });
 

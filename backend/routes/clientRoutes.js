@@ -4,6 +4,13 @@ import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
 import jwt from 'jsonwebtoken';
+import Stripe from 'stripe';
+import { upload } from '../config/cloudinary.js';
+
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
@@ -101,7 +108,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Checkout Endpoint: Registers user and creates pending enrollment
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', upload.single('screenshot'), async (req, res) => {
     try {
         const { name, email, password, age, whatsapp, level, courseId, paymentMethod } = req.body;
         
@@ -112,13 +119,68 @@ router.post('/checkout', async (req, res) => {
             await user.save();
         }
 
-        // 2. We no longer assign an instructor automatically. The Admin will assign them manually from the dashboard.
+        // Get Cloudinary URL if uploaded
+        let receiptUrl = '';
+        if (req.file && req.file.path) {
+            receiptUrl = req.file.path;
+        }
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+
+        // Handle Stripe Credit Card Payment
+        if (paymentMethod === 'Credit Card') {
+            if (!stripe) {
+                return res.status(500).json({ success: false, message: 'Stripe is not configured. Please contact the administrator.' });
+            }
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                mode: 'payment',
+                success_url: `${process.env.FRONTEND_URL || 'https://acadamy-iqra.vercel.app'}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.FRONTEND_URL || 'https://acadamy-iqra.vercel.app'}/checkout`,
+                customer_email: user.email,
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'usd',
+                            product_data: {
+                                name: course.title,
+                            },
+                            unit_amount: course.price * 100, // Stripe expects cents
+                        },
+                        quantity: 1,
+                    },
+                ],
+            });
+
+            const newEnrollment = new Enrollment({
+                student: user._id,
+                course: courseId,
+                instructor: null,
+                status: 'Pending',
+                paymentStatus: 'Pending', // Will be updated via webhook in a real app
+                receiptUrl
+            });
+            await newEnrollment.save();
+
+            return res.status(200).json({
+                success: true,
+                url: session.url, // Send stripe checkout URL to frontend
+                token: generateToken(user._id),
+                user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+            });
+        }
+
+        // Handle Manual Payments (Vodafone Cash / InstaPay)
         const newEnrollment = new Enrollment({
             student: user._id,
             course: courseId,
-            instructor: null, // Set to null initially
+            instructor: null,
             status: 'Pending',
-            paymentStatus: paymentMethod === 'Credit Card' ? 'Paid' : 'Pending'
+            paymentStatus: 'Pending',
+            receiptUrl // Save the Cloudinary URL here
         });
         await newEnrollment.save();
 

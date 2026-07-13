@@ -48,16 +48,17 @@ const Checkout = () => {
     setError('');
 
     try {
-      const payload = {
-        ...formData,
-        courseId: course._id,
-        paymentMethod
-      };
+      const payload = new FormData();
+      Object.keys(formData).forEach(key => payload.append(key, formData[key]));
+      payload.append('courseId', course._id);
+      payload.append('paymentMethod', paymentMethod);
+      if (screenshot) {
+        payload.append('screenshot', screenshot);
+      }
 
       const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: payload
       });
       
       let data;
@@ -72,6 +73,11 @@ const Checkout = () => {
       }
 
       if (data.success) {
+        if (data.url) {
+          // Stripe checkout URL
+          window.location.href = data.url;
+          return;
+        }
         localStorage.setItem('userToken', data.token);
         localStorage.setItem('userId', data.user._id);
         localStorage.setItem('userName', data.user.name);

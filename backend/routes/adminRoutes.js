@@ -4,6 +4,7 @@ import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { upload } from '../config/cloudinary.js';
 import jwt from 'jsonwebtoken';
 
 const generateToken = (id) => {
@@ -25,9 +26,13 @@ router.get('/courses', protect, adminOnly, async (req, res) => {
 });
 
 // Add a new course
-router.post('/courses', protect, adminOnly, async (req, res) => {
+router.post('/courses', protect, adminOnly, upload.single('image'), async (req, res) => {
     try {
-        const newCourse = new Course(req.body);
+        const courseData = { ...req.body };
+        if (req.file && req.file.path) {
+            courseData.image = req.file.path; // Set Cloudinary URL
+        }
+        const newCourse = new Course(courseData);
         const savedCourse = await newCourse.save();
         res.status(201).json(savedCourse);
     } catch (err) {

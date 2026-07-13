@@ -118,6 +118,7 @@ const DashboardOverview = () => {
                 <th>Enrolled Course</th>
                 <th>Assigned Instructor</th>
                 <th>Payment Status</th>
+                <th>Receipt</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -140,6 +141,13 @@ const DashboardOverview = () => {
                     }}>
                       ● {enr.paymentStatus}
                     </span>
+                  </td>
+                  <td>
+                    {enr.receiptUrl ? (
+                      <a href={enr.receiptUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>View Receipt</a>
+                    ) : (
+                      <span style={{ color: '#64748b', fontSize: '0.9rem' }}>N/A</span>
+                    )}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
