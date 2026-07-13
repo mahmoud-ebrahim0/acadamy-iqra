@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../../utils/api';
 
 const ManageInstructors = () => {
   const [instructors, setInstructors] = useState([]);
@@ -15,7 +16,7 @@ const ManageInstructors = () => {
   const fetchInstructors = async () => {
     try {
       setLoading(true);
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/admin/instructors');
+      const res = await fetchWithAuth('/api/admin/instructors');
       const data = await res.json();
       setInstructors(data);
     } catch (err) {
@@ -48,9 +49,8 @@ const ManageInstructors = () => {
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch('https://acadamy-iqra-production.up.railway.app/api/admin/instructors', {
+      await fetchWithAuth('/api/admin/instructors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newInstructor)
       });
       setIsModalOpen(false);
@@ -69,9 +69,8 @@ const ManageInstructors = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch(`https://acadamy-iqra-production.up.railway.app/api/admin/instructors/${editingInstructor._id}`, {
+      await fetchWithAuth(`/api/admin/instructors/${editingInstructor._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingInstructor)
       });
       setIsEditModalOpen(false);
@@ -85,7 +84,7 @@ const ManageInstructors = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this instructor?')) return;
     try {
-      await fetch(`https://acadamy-iqra-production.up.railway.app/api/admin/instructors/${id}`, {
+      await fetchWithAuth(`/api/admin/instructors/${id}`, {
         method: 'DELETE'
       });
       fetchInstructors();

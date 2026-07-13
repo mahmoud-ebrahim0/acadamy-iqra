@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../../utils/api';
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -11,7 +12,7 @@ const ManageCourses = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/admin/courses');
+      const res = await fetchWithAuth('/api/admin/courses');
       const data = await res.json();
       if (Array.isArray(data)) setCourses(data);
     } catch (err) {
@@ -37,9 +38,8 @@ const ManageCourses = () => {
 
     setLoading(true);
     try {
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/admin/courses', {
+      const res = await fetchWithAuth('/api/admin/courses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(courseData)
       });
       if (res.ok) {
@@ -61,7 +61,7 @@ const ManageCourses = () => {
   const handleDeleteCourse = async (id) => {
     if(window.confirm('Are you sure you want to delete this course?')) {
       try {
-        const res = await fetch(`https://acadamy-iqra-production.up.railway.app/api/admin/courses/${id}`, {
+        const res = await fetchWithAuth(`/api/admin/courses/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {

@@ -4,18 +4,34 @@ const InstructorsSection = () => {
   const [instructors, setInstructors] = useState([]);
 
   useEffect(() => {
-    // Mockup Data to fill the site
-    const mockupInstructors = [
-      { _id: '1', name: 'Sheikh Ahmed Al-Azhari', rank: 'Senior Qari & Ijazah Holder', imageUrl: '' },
-      { _id: '2', name: 'Sheikh Mahmoud', rank: 'Specialist in 10 Qira\'at', imageUrl: '' },
-      { _id: '3', name: 'Ustazah Fatima', rank: 'Senior Tajweed Expert (Female)', imageUrl: '' },
-      { _id: '4', name: 'Ustadh Omar', rank: 'Quran Foundation Tutor', imageUrl: '' },
-      { _id: '5', name: 'Ustazah Aisha', rank: 'Hifz Instructor (Female)', imageUrl: '' },
-      { _id: '6', name: 'Sheikh Bilal', rank: 'Islamic Studies Tutor', imageUrl: '' }
-    ];
-    setInstructors(mockupInstructors);
+    const fetchInstructors = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://acadamy-iqra-production.up.railway.app';
+        const res = await fetch(`${apiUrl}/api/client/instructors`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        
+        if (data && data.length > 0) {
+          setInstructors(data);
+        } else {
+          // Fallback to mockup if DB is empty
+          const mockupInstructors = [
+            { _id: '1', name: 'Sheikh Ahmed Al-Azhari', rank: 'Senior Qari & Ijazah Holder', imageUrl: '' },
+            { _id: '2', name: 'Sheikh Mahmoud', rank: 'Specialist in 10 Qira\'at', imageUrl: '' },
+            { _id: '3', name: 'Ustazah Fatima', rank: 'Senior Tajweed Expert (Female)', imageUrl: '' },
+            { _id: '4', name: 'Ustadh Omar', rank: 'Quran Foundation Tutor', imageUrl: '' },
+            { _id: '5', name: 'Ustazah Aisha', rank: 'Hifz Instructor (Female)', imageUrl: '' },
+            { _id: '6', name: 'Sheikh Bilal', rank: 'Islamic Studies Tutor', imageUrl: '' }
+          ];
+          setInstructors(mockupInstructors);
+        }
+      } catch (err) {
+        console.error('Error fetching instructors:', err);
+      }
+    };
+
+    fetchInstructors();
   }, []);
-  
 
   // Dynamically assign an image based on the instructor's name/title
   const getFallbackImage = (name) => {

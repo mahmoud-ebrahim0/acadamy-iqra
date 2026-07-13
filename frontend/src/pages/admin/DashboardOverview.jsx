@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../../utils/api';
 
 const DashboardOverview = () => {
   const [stats, setStats] = useState({ totalCourses: 0, totalInstructors: 0, totalStudents: 0 });
@@ -17,9 +18,9 @@ const DashboardOverview = () => {
     try {
       setLoading(true);
       const [statsRes, enrRes, instRes] = await Promise.all([
-        fetch('https://acadamy-iqra-production.up.railway.app/api/admin/stats'),
-        fetch('https://acadamy-iqra-production.up.railway.app/api/admin/enrollments'),
-        fetch('https://acadamy-iqra-production.up.railway.app/api/admin/instructors')
+        fetchWithAuth('/api/admin/stats'),
+        fetchWithAuth('/api/admin/enrollments'),
+        fetchWithAuth('/api/admin/instructors')
       ]);
       const statsData = await statsRes.json();
       const enrData = await enrRes.json();
@@ -42,7 +43,7 @@ const DashboardOverview = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to permanently delete this enrollment?')) return;
     try {
-      await fetch(`https://acadamy-iqra-production.up.railway.app/api/admin/enrollments/${id}`, {
+      await fetchWithAuth(`/api/admin/enrollments/${id}`, {
         method: 'DELETE'
       });
       fetchDashboardData();
@@ -62,9 +63,8 @@ const DashboardOverview = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await fetch(`https://acadamy-iqra-production.up.railway.app/api/admin/enrollments/${editingEnr._id}`, {
+      await fetchWithAuth(`/api/admin/enrollments/${editingEnr._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           paymentStatus: newStatus,
           instructor: newInstructor === '' ? null : newInstructor,

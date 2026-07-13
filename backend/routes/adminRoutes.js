@@ -3,11 +3,19 @@ import Course from '../models/Course.js';
 import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import jwt from 'jsonwebtoken';
+
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
+        expiresIn: '30d',
+    });
+};
 
 const router = express.Router();
 
 // Get all courses
-router.get('/courses', async (req, res) => {
+router.get('/courses', protect, adminOnly, async (req, res) => {
     try {
         const courses = await Course.find();
         res.json(courses);
@@ -17,7 +25,7 @@ router.get('/courses', async (req, res) => {
 });
 
 // Add a new course
-router.post('/courses', async (req, res) => {
+router.post('/courses', protect, adminOnly, async (req, res) => {
     try {
         const newCourse = new Course(req.body);
         const savedCourse = await newCourse.save();
@@ -28,7 +36,7 @@ router.post('/courses', async (req, res) => {
 });
 
 // Delete a course
-router.delete('/courses/:id', async (req, res) => {
+router.delete('/courses/:id', protect, adminOnly, async (req, res) => {
     try {
         await Course.findByIdAndDelete(req.params.id);
         res.json({ message: 'Course deleted successfully' });
@@ -38,7 +46,7 @@ router.delete('/courses/:id', async (req, res) => {
 });
 
 // Get all instructors
-router.get('/instructors', async (req, res) => {
+router.get('/instructors', protect, adminOnly, async (req, res) => {
     try {
         const instructors = await Instructor.find();
         res.json(instructors);
@@ -48,7 +56,7 @@ router.get('/instructors', async (req, res) => {
 });
 
 // Add a new instructor
-router.post('/instructors', async (req, res) => {
+router.post('/instructors', protect, adminOnly, async (req, res) => {
     try {
         const newInstructor = new Instructor(req.body);
         const savedInstructor = await newInstructor.save();
@@ -59,7 +67,7 @@ router.post('/instructors', async (req, res) => {
 });
 
 // Update an instructor
-router.put('/instructors/:id', async (req, res) => {
+router.put('/instructors/:id', protect, adminOnly, async (req, res) => {
     try {
         const updatedInstructor = await Instructor.findByIdAndUpdate(
             req.params.id,
@@ -74,7 +82,7 @@ router.put('/instructors/:id', async (req, res) => {
 });
 
 // Delete an instructor
-router.delete('/instructors/:id', async (req, res) => {
+router.delete('/instructors/:id', protect, adminOnly, async (req, res) => {
     try {
         const deletedInstructor = await Instructor.findByIdAndDelete(req.params.id);
         if (!deletedInstructor) return res.status(404).json({ message: 'Instructor not found' });
@@ -85,7 +93,7 @@ router.delete('/instructors/:id', async (req, res) => {
 });
 
 // Admin Dashboard stats
-router.get('/stats', async (req, res) => {
+router.get('/stats', protect, adminOnly, async (req, res) => {
     try {
         const totalCourses = await Course.countDocuments();
         const totalInstructors = await Instructor.countDocuments();
@@ -102,17 +110,33 @@ router.get('/stats', async (req, res) => {
 });
 
 // Admin Login
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === 'admin123') {
-        res.json({ success: true, token: 'fake-jwt-token-12345' });
+    
+    // First, try finding an admin in the database by email
+    const user = await User.findOne({ email: username });
+    
+    if (user && user.role === 'admin' && (await user.matchPassword(password))) {
+        res.json({ 
+            success: true, 
+            token: generateToken(user._id),
+            user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+        });
+    } else if (username === 'admin' && password === 'admin123') {
+        // Fallback for demo, generate a token with a dummy id
+        const demoAdminId = '000000000000000000000000'; // 24 chars for dummy ObjectId
+        res.json({ 
+            success: true, 
+            token: generateToken(demoAdminId),
+            user: { _id: demoAdminId, name: 'Demo Admin', email: 'admin@admin.com', role: 'admin' }
+        });
     } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials' });
+        res.status(401).json({ success: false, message: 'Invalid credentials or not an admin' });
     }
 });
 
 // Admin Enrollments
-router.get('/enrollments', async (req, res) => {
+router.get('/enrollments', protect, adminOnly, async (req, res) => {
     try {
         const enrollments = await Enrollment.find()
             .populate('student', 'name email')
@@ -125,7 +149,7 @@ router.get('/enrollments', async (req, res) => {
 });
 
 // Update Enrollment (e.g. Payment Status)
-router.put('/enrollments/:id', async (req, res) => {
+router.put('/enrollments/:id', protect, adminOnly, async (req, res) => {
     try {
         const { paymentStatus, instructor, scheduleTime, zoomLink } = req.body;
         
@@ -152,7 +176,7 @@ router.put('/enrollments/:id', async (req, res) => {
 });
 
 // Delete Enrollment
-router.delete('/enrollments/:id', async (req, res) => {
+router.delete('/enrollments/:id', protect, adminOnly, async (req, res) => {
     try {
         const deletedEnrollment = await Enrollment.findByIdAndDelete(req.params.id);
         if (!deletedEnrollment) {

@@ -3,6 +3,13 @@ import Course from '../models/Course.js';
 import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
+import jwt from 'jsonwebtoken';
+
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
+        expiresIn: '30d',
+    });
+};
 
 const router = express.Router();
 
@@ -62,8 +69,11 @@ router.post('/register', async (req, res) => {
             await newInstructor.save();
         }
 
-        const token = `user-token-${newUser._id}`;
-        res.status(201).json({ success: true, token, user: { _id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role } });
+        res.status(201).json({ 
+            success: true, 
+            token: generateToken(newUser._id), 
+            user: { _id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role } 
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -74,10 +84,14 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     
     try {
-        const user = await User.findOne({ email, password });
-        if (user) {
-            const token = `user-token-${user._id}`;
-            res.json({ success: true, token, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+        const user = await User.findOne({ email });
+        
+        if (user && (await user.matchPassword(password))) {
+            res.json({ 
+                success: true, 
+                token: generateToken(user._id), 
+                user: { _id: user._id, name: user.name, email: user.email, role: user.role } 
+            });
         } else {
             res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
@@ -108,8 +122,11 @@ router.post('/checkout', async (req, res) => {
         });
         await newEnrollment.save();
 
-        const token = `user-token-${user._id}`;
-        res.status(201).json({ success: true, token, user: { _id: user._id, name: user.name, email: user.email } });
+        res.status(201).json({ 
+            success: true, 
+            token: generateToken(user._id), 
+            user: { _id: user._id, name: user.name, email: user.email, role: user.role } 
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

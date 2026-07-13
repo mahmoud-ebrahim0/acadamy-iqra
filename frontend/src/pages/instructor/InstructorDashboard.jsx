@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchWithAuth } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 const InstructorDashboard = () => {
@@ -19,7 +20,7 @@ const InstructorDashboard = () => {
   const instructorId = localStorage.getItem('userId') || 'demo-instructor-id';
 
   const fetchDashboardData = () => {
-    fetch(`https://acadamy-iqra-production.up.railway.app/api/instructor/dashboard?instructorId=${instructorId}`)
+    fetchWithAuth(`/api/instructor/dashboard?instructorId=${instructorId}`)
       .then(res => res.json())
       .then(data => {
         if(data.schedule) setSchedule(data.schedule);
@@ -47,9 +48,8 @@ const InstructorDashboard = () => {
     setStudents(students.map(s => s._id === enrollmentId ? { ...s, currentAyahOrLesson: newProgress } : s));
     
     // Update backend
-    fetch(`https://acadamy-iqra-production.up.railway.app/api/instructor/progress/${enrollmentId}`, {
+    fetchWithAuth(`/api/instructor/progress/${enrollmentId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentAyahOrLesson: newProgress })
     }).catch(err => console.error("Failed to update progress:", err));
   };
@@ -71,9 +71,8 @@ const InstructorDashboard = () => {
       date: new Date().toISOString().split('T')[0]
     };
 
-    fetch('https://acadamy-iqra-production.up.railway.app/api/instructor/payouts', {
+    fetchWithAuth('/api/instructor/payouts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payoutData)
     })
     .then(res => res.json())
