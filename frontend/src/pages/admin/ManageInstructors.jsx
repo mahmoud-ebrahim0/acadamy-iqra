@@ -18,7 +18,12 @@ const ManageInstructors = () => {
       setLoading(true);
       const res = await fetchWithAuth('/api/admin/instructors');
       const data = await res.json();
-      setInstructors(data);
+      if (Array.isArray(data)) {
+        setInstructors(data);
+      } else {
+        setInstructors([]);
+        if (res.status === 401) window.location.href = '/login';
+      }
     } catch (err) {
       console.error('Failed to fetch instructors:', err);
     } finally {

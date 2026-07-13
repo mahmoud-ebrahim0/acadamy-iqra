@@ -14,7 +14,11 @@ const ManageCourses = () => {
     try {
       const res = await fetchWithAuth('/api/admin/courses');
       const data = await res.json();
-      if (Array.isArray(data)) setCourses(data);
+      if (Array.isArray(data)) {
+        setCourses(data);
+      } else if (res.status === 401) {
+        window.location.href = '/login';
+      }
     } catch (err) {
       console.error('Failed to fetch courses', err);
     }

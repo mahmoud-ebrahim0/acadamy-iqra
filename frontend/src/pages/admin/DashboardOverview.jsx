@@ -26,9 +26,14 @@ const DashboardOverview = () => {
       const enrData = await enrRes.json();
       const instData = await instRes.json();
       
+      if (statsRes.status === 401 || enrRes.status === 401 || instRes.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
       setStats(statsData);
-      setEnrollments(enrData);
-      setInstructors(instData);
+      setEnrollments(Array.isArray(enrData) ? enrData : []);
+      setInstructors(Array.isArray(instData) ? instData : []);
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
     } finally {
