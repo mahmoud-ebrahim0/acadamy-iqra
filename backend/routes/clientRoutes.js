@@ -119,10 +119,14 @@ router.post('/checkout', upload.single('screenshot'), async (req, res) => {
             await user.save();
         }
 
-        // Get Cloudinary URL if uploaded
+        // Get Cloudinary URL or local path if uploaded
         let receiptUrl = '';
-        if (req.file && req.file.path) {
-            receiptUrl = req.file.path;
+        if (req.file) {
+            if (req.file.path && req.file.path.startsWith('http')) {
+                receiptUrl = req.file.path;
+            } else {
+                receiptUrl = `https://acadamy-iqra-production.up.railway.app/${req.file.path.replace(/\\/g, '/')}`;
+            }
         }
 
         const course = await Course.findById(courseId);

@@ -29,8 +29,12 @@ router.get('/courses', protect, adminOnly, async (req, res) => {
 router.post('/courses', protect, adminOnly, upload.single('image'), async (req, res) => {
     try {
         const courseData = { ...req.body };
-        if (req.file && req.file.path) {
-            courseData.image = req.file.path; // Set Cloudinary URL
+        if (req.file) {
+            if (req.file.path && req.file.path.startsWith('http')) {
+                courseData.image = req.file.path; // Cloudinary URL
+            } else {
+                courseData.image = `https://acadamy-iqra-production.up.railway.app/${req.file.path.replace(/\\/g, '/')}`; // Local fallback
+            }
         }
         const newCourse = new Course(courseData);
         const savedCourse = await newCourse.save();
