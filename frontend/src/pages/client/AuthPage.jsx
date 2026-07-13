@@ -17,11 +17,17 @@ const AuthPage = () => {
     setError('');
 
     try {
-      const API_URL = isLogin 
+      let API_URL = isLogin 
         ? 'https://acadamy-iqra-production.up.railway.app/api/client/login'
         : 'https://acadamy-iqra-production.up.railway.app/api/client/register';
       
-      const payload = isLogin ? { email, password } : { name, email, password };
+      let payload = isLogin ? { email, password } : { name, email, password };
+
+      // Redirect admin login attempts to the correct admin route
+      if (isLogin && (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@admin.com')) {
+        API_URL = 'https://acadamy-iqra-production.up.railway.app/api/admin/login';
+        payload = { username: 'admin', password };
+      }
 
       // Make actual request to our MongoDB-backed Express Server
       const res = await fetch(API_URL, {

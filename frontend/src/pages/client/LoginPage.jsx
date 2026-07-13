@@ -12,11 +12,18 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Use the client login endpoint for normal users
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/login', {
+      let API_URL = 'https://acadamy-iqra-production.up.railway.app/api/client/login';
+      let payload = { email, password };
+
+      if (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@admin.com') {
+        API_URL = 'https://acadamy-iqra-production.up.railway.app/api/admin/login';
+        payload = { username: 'admin', password };
+      }
+
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
