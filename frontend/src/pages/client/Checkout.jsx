@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 
 const Checkout = () => {
   const location = useLocation();
@@ -56,7 +57,7 @@ const Checkout = () => {
         payload.append('screenshot', screenshot);
       }
 
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/checkout', {
+      const res = await fetch(`${API_URL}/api/client/checkout`, {
         method: 'POST',
         body: payload
       });

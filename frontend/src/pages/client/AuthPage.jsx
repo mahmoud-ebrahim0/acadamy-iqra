@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 
 const AuthPage = () => {
   const location = useLocation();
@@ -17,20 +18,20 @@ const AuthPage = () => {
     setError('');
 
     try {
-      let API_URL = isLogin 
-        ? 'https://acadamy-iqra-production.up.railway.app/api/client/login'
-        : 'https://acadamy-iqra-production.up.railway.app/api/client/register';
+      let endpoint = isLogin 
+        ? `${API_URL}/api/client/login`
+        : `${API_URL}/api/client/register`;
       
       let payload = isLogin ? { email, password } : { name, email, password };
 
       // Redirect admin login attempts to the correct admin route
       if (isLogin && (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@admin.com')) {
-        API_URL = 'https://acadamy-iqra-production.up.railway.app/api/admin/login';
+        endpoint = `${API_URL}/api/admin/login`;
         payload = { username: 'admin', password };
       }
 
       // Make actual request to our MongoDB-backed Express Server
-      const res = await fetch(API_URL, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

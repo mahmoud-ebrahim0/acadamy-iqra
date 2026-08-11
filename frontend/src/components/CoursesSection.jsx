@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../utils/api';
 
 const CoursesSection = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const CoursesSection = () => {
     const fetchCourses = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/courses');
+        const res = await fetch(`${API_URL}/api/client/courses`);
         const data = await res.json();
         
         if (Array.isArray(data) && data.length > 0) {

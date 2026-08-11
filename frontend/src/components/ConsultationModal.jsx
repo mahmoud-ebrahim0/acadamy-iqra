@@ -1,22 +1,42 @@
 import React, { useState } from 'react';
+import { API_URL } from '../utils/api';
 
 const ConsultationModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({ name: '', age: '', whatsapp: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate sending data
-    setTimeout(() => {
-      setSubmitted(true);
-      setTimeout(() => {
-        onClose();
-        setSubmitted(false);
-        setFormData({ name: '', age: '', whatsapp: '' });
-      }, 3000);
-    }, 1000);
+    setLoading(true);
+    setError('');
+    
+    try {
+      const res = await fetch(`${API_URL}/api/client/consultation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setSubmitted(true);
+        setTimeout(() => {
+          onClose();
+          setSubmitted(false);
+          setFormData({ name: '', age: '', whatsapp: '' });
+        }, 3000);
+      } else {
+        setError(data.message || 'Failed to send request.');
+      }
+    } catch (err) {
+      setError('Connection failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,8 +89,9 @@ const ConsultationModal = ({ isOpen, onClose }) => {
                   onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
                 />
               </div>
-              <button type="submit" className="btn btn-accent" style={{ width: '100%', fontSize: '1.2rem', padding: '0.8rem' }}>
-                Request Evaluation
+              {error && <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center', background: '#fee2e2', padding: '0.5rem', borderRadius: '0.5rem' }}>{error}</div>}
+              <button type="submit" disabled={loading} className="btn btn-accent" style={{ width: '100%', fontSize: '1.2rem', padding: '0.8rem' }}>
+                {loading ? 'Sending...' : 'Request Evaluation'}
               </button>
             </form>
           </>

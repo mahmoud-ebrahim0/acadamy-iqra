@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 
 const SignupPage = () => {
   const [name, setName] = useState('');
@@ -11,7 +12,7 @@ const SignupPage = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://acadamy-iqra-production.up.railway.app/api/client/register', {
+      const res = await fetch(`${API_URL}/api/client/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })

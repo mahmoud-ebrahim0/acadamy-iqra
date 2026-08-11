@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { API_URL } from '../../utils/api';
 
 const StudentDashboard = () => {
   const formatZoomLink = (link) => {
@@ -21,7 +22,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     if (userId) {
-      fetch(`https://acadamy-iqra-production.up.railway.app/api/student/dashboard?userId=${userId}`)
+      fetch(`${API_URL}/api/student/dashboard?userId=${userId}`)
         .then(res => res.json())
         .then(data => {
           setEnrollments(data.enrollments || []);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_URL } from '../../utils/api';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,15 +13,15 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      let API_URL = 'https://acadamy-iqra-production.up.railway.app/api/client/login';
+      let endpoint = `${API_URL}/api/client/login`;
       let payload = { email, password };
 
       if (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@admin.com') {
-        API_URL = 'https://acadamy-iqra-production.up.railway.app/api/admin/login';
+        endpoint = `${API_URL}/api/admin/login`;
         payload = { username: 'admin', password };
       }
 
-      const res = await fetch(API_URL, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

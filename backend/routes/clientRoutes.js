@@ -6,6 +6,7 @@ import Enrollment from '../models/Enrollment.js';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
 import { upload } from '../config/cloudinary.js';
+import nodemailer from 'nodemailer';
 
 let stripe = null;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -195,6 +196,63 @@ router.post('/checkout', upload.single('screenshot'), async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Free Consultation Email Route
+router.post('/consultation', async (req, res) => {
+    try {
+        const { name, age, whatsapp } = req.body;
+
+        if (!name || !age || !whatsapp) {
+            return res.status(400).json({ success: false, message: 'All fields are required.' });
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.ADMIN_EMAIL,
+            subject: `New Free Trial Request - ${name}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 10px; max-width: 600px; margin: auto;">
+                    <h2 style="color: #b45309; text-align: center;">New Free Consultation Request</h2>
+                    <p style="font-size: 16px;">You have received a new free trial evaluation request from the website.</p>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <tr>
+                            <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd; color: #333;">Student Name:</th>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd;">${name}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd; color: #333;">Student Age:</th>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd;">${age} Years</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd; color: #333;">WhatsApp:</th>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+                                <a href="https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}" style="color: #25D366; font-weight: bold; text-decoration: none;">
+                                    ${whatsapp} (Click to Chat)
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                    <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #777;">Tarteel Academy System</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ success: true, message: 'Consultation request sent successfully.' });
+    } catch (err) {
+        console.error('Email sending error:', err);
+        res.status(500).json({ success: false, message: 'Failed to send email. Check credentials.' });
     }
 });
 

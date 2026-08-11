@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../utils/api';
 
 const InstructorsSection = () => {
   const [instructors, setInstructors] = useState([]);
@@ -6,8 +7,7 @@ const InstructorsSection = () => {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://acadamy-iqra-production.up.railway.app';
-        const res = await fetch(`${apiUrl}/api/client/instructors`);
+        const res = await fetch(`${API_URL}/api/client/instructors`);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ahmed Ayoub — Electrical Power Engineering Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-slide: #ffffff;
+      --bg-card: #ffffff;
+      --bg-sub: #f1f5f9;
+      --accent-blue: #0284c7;
+      --accent-blue-dark: #0369a1;
+      --text-navy: #0f172a;
+      --text-gray: #334155;
+      --border-color: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+
+    .top-nav {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 12px 24px;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-navy);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: rgba(2, 132, 199, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      background: #ffffff;
+      color: var(--text-navy);
+      border: 1.5px solid var(--border-color);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue-dark);
+    }
+
+    .presentation-container {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      background-color: var(--bg-slide);
+      border-radius: 16px;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 44px 56px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .slide-top-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--accent-blue);
+    }
+
+    .slide-header {
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+
+    .slide-category {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: var(--text-navy);
+      line-height: 1.2;
+    }
+
+    .slide-divider {
+      width: 100%;
+      height: 2px;
+      background: var(--border-color);
+      margin-top: 14px;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      gap: 24px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: var(--bg-sub);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+
+    .card-badge {
+      align-self: flex-start;
+      background: rgba(2, 132, 199, 0.12);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-navy);
+      line-height: 1.25;
+    }
+
+    .card-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-list li {
+      position: relative;
+      padding-left: 24px;
+      font-size: 1.1rem;
+      color: var(--text-gray);
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .card-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent-blue);
+      font-weight: bold;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .card-list li strong {
+      color: var(--text-navy);
+    }
+
+    .sub-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sub-box-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent-blue-dark);
+    }
+
+    .sub-box-desc {
+      font-size: 1rem;
+      color: var(--text-gray);
+      font-weight: 600;
+    }
+
+    /* Cover Slide */
+    .cover-slide {
+      justify-content: center;
+      padding: 56px 72px;
+      background: var(--bg-slide);
+    }
+
+    .cover-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 4.2rem;
+      font-weight: 800;
+      color: var(--text-navy);
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .cover-subtitle {
+      font-size: 1.5rem;
+      color: var(--accent-blue);
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      width: 100%;
+      background: var(--bg-sub);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px 32px;
+    }
+
+    .cover-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cover-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cover-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-navy);
+    }
+
+    .tech-card-horizontal {
+      background: var(--bg-sub);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .tech-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--accent-blue-dark);
+    }
+
+    .tech-desc {
+      font-size: 1.15rem;
+      color: var(--text-navy);
+      font-weight: 700;
+    }
+
+    .controls-bar {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding: 12px 24px;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .slide-indicator {
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--text-gray);
+    }
+
+    .slide-indicator span {
+      color: var(--accent-blue);
+      font-weight: 800;
+    }
+
+    .progress-bar-container {
+      flex: 1;
+      max-width: 380px;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 24px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 12.5%;
+      background: var(--accent-blue);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-nav">
+    <div class="brand-title">
+      <span>Ahmed Ayoub</span>
+      <span class="brand-badge">Electrical Power Engineering</span>
+    </div>
+    <div class="nav-actions">
+      <a href="Ahmed_Ayoub_Presentation.pptx" download class="btn btn-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Download PowerPoint (.pptx)
+      </a>
+      <button class="btn" onclick="toggleFullScreen()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+        Fullscreen
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Presentation Container -->
+  <div class="presentation-container" id="presentationContainer">
+
+    <!-- SLIDE 1: Title -->
+    <div class="slide cover-slide active" id="slide-1">
+      <div class="slide-top-line"></div>
+      <div class="brand-badge" style="margin-bottom: 16px; font-size: 0.9rem;">Tanta University • Faculty of Engineering</div>
+      <h1 class="cover-title">Ahmed Ayoub</h1>
+      <div class="cover-subtitle">Electrical Power Engineering Student</div>
+      
+      <div class="cover-grid">
+        <div class="cover-item">
+          <div class="cover-label">University</div>
+          <div class="cover-val">Tanta University</div>
+        </div>
+        <div class="cover-item">
+          <div class="cover-label">Faculty</div>
+          <div class="cover-val">Faculty of Engineering</div>
+        </div>
+        <div class="cover-item">
+          <div class="cover-label">Department</div>
+          <div class="cover-val">Electrical Power Engineering</div>
+        </div>
+        <div class="cover-item">
+          <div class="cover-label">Academic Year</div>
+          <div class="cover-val">1st Year Student (Freshman)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: About Me -->
+    <div class="slide" id="slide-2">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Personal Profile</div>
+        <h2 class="slide-title">About Me</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-badge">PERSONAL PROFILE</div>
+            <h3 class="card-title">Student Details</h3>
+            <ul class="card-list">
+              <li><strong>Name:</strong> Ahmed Ayoub</li>
+              <li><strong>University:</strong> Tanta University</li>
+              <li><strong>Faculty:</strong> Faculty of Engineering</li>
+              <li><strong>Department:</strong> Electrical Power Engineering</li>
+              <li><strong>Academic Year:</strong> 1st Year Student (Freshman)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">KEY METRICS</div>
+            <h3 class="card-title">Academic Identity</h3>
+            <ul class="card-list">
+              <li><strong>Institution:</strong> Tanta University</li>
+              <li><strong>Specialization:</strong> Electrical Power Engineering</li>
+              <li><strong>Current Level:</strong> First Year Student (1st Year)</li>
+              <li><strong>Main Passion:</strong> Medium Voltage (MV) Switchgear</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Core Goals -->
+    <div class="slide" id="slide-3">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Career Phase 1</div>
+        <h2 class="slide-title">Core Engineering Goals</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-badge">GOAL 01</div>
+            <h3 class="card-title">Strong Base</h3>
+            <ul class="card-list">
+              <li>Master electrical power engineering basics.</li>
+              <li>Study circuits, transformers & electrical machines.</li>
+              <li>Build a solid technical foundation.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">GOAL 02</div>
+            <h3 class="card-title">MV Switchgear</h3>
+            <ul class="card-list">
+              <li>Specialize in Medium Voltage Switchgear.</li>
+              <li>Master power distribution networks.</li>
+              <li>Learn protection relays & circuit breakers.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">GOAL 03</div>
+            <h3 class="card-title">Practical Training</h3>
+            <ul class="card-list">
+              <li>Summer engineering internships.</li>
+              <li>Site visits to electrical substations.</li>
+              <li>Real hands-on engineering projects.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Certifications & Software -->
+    <div class="slide" id="slide-4">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Career Phase 2</div>
+        <h2 class="slide-title">Certifications & Software Tools</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-badge">GOAL 04</div>
+            <h3 class="card-title">Target Certifications</h3>
+            <div class="sub-box">
+              <div class="sub-box-title">ABB</div>
+              <div class="sub-box-desc">MV Switchgear, Protection Relays & Automation.</div>
+            </div>
+            <div class="sub-box">
+              <div class="sub-box-title">Schneider Electric</div>
+              <div class="sub-box-desc">Power Distribution & EcoStruxure Systems.</div>
+            </div>
+            <div class="sub-box">
+              <div class="sub-box-title">Siemens</div>
+              <div class="sub-box-desc">Power System Analysis & Smart Energy.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-badge">GOAL 05</div>
+            <h3 class="card-title">Engineering Software</h3>
+            <div class="sub-box">
+              <div class="sub-box-title" style="color: var(--text-navy);">AutoCAD Electrical</div>
+              <div class="sub-box-desc">Schematics & Panel Layout</div>
+            </div>
+            <div class="sub-box">
+              <div class="sub-box-title" style="color: var(--text-navy);">ETAP</div>
+              <div class="sub-box-desc">Load Flow & Short Circuit Analysis</div>
+            </div>
+            <div class="sub-box">
+              <div class="sub-box-title" style="color: var(--text-navy);">DIgSILENT & MATLAB</div>
+              <div class="sub-box-desc">Grid Stability & Power Simulations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Leadership & Safety -->
+    <div class="slide" id="slide-5">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Career Phase 3</div>
+        <h2 class="slide-title">Skills, Leadership & Safety</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-badge">GOAL 06</div>
+            <h3 class="card-title">Leadership & Soft Skills</h3>
+            <ul class="card-list">
+              <li>Technical problem solving skills.</li>
+              <li>Clear engineering communication.</li>
+              <li>Team leadership & project management.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">GOAL 08</div>
+            <h3 class="card-title">Safety & System Reliability</h3>
+            <ul class="card-list">
+              <li>Follow IEC & IEEE safety standards.</li>
+              <li>Design reliable power grid networks.</li>
+              <li>Minimize power loss & maximize efficiency.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Career Roadmap -->
+    <div class="slide" id="slide-6">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Career Phase 4</div>
+        <h2 class="slide-title">Career Roadmap</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-badge">STEP 1 • POST-GRADUATION</div>
+            <h3 class="card-title">Leading Company in Egypt</h3>
+            <ul class="card-list">
+              <li>Work for a top engineering firm in Egypt.</li>
+              <li>Join companies like Elsewedy, Schneider, or Siemens.</li>
+              <li>Master local switchgear & distribution projects.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">STEP 2 • MID-TERM GOAL</div>
+            <h3 class="card-title">International Career</h3>
+            <ul class="card-list">
+              <li>Expand career to international markets.</li>
+              <li>Work on global mega power infrastructure.</li>
+              <li>Build a strong global engineering reputation.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-badge">STEP 3 • LONG-TERM VISION</div>
+            <h3 class="card-title">Lead Mega Projects</h3>
+            <ul class="card-list">
+              <li>Become a Senior Lead Electrical Engineer.</li>
+              <li>Direct multi-million dollar power grid projects.</li>
+              <li>Lead and mentor future engineering teams.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Future Technologies -->
+    <div class="slide" id="slide-7">
+      <div class="slide-top-line"></div>
+      <div class="slide-header">
+        <div class="slide-category">Continuous Learning</div>
+        <h2 class="slide-title">Future Technologies</h2>
+        <div class="slide-divider"></div>
+      </div>
+      <div class="slide-body" style="flex-direction: column;">
+        <div class="tech-card-horizontal">
+          <div class="tech-title">1. Renewable Energy</div>
+          <div class="tech-desc">• Solar PV, Wind Energy & Battery Storage Systems (BESS).</div>
+        </div>
+        <div class="tech-card-horizontal">
+          <div class="tech-title">2. Smart Grids & Microgrids</div>
+          <div class="tech-desc">• Automated Demand Response & Smart Metering Infrastructure.</div>
+        </div>
+        <div class="tech-card-horizontal">
+          <div class="tech-title">3. Digital Substations</div>
+          <div class="tech-desc">• IEC 61850 Protocol & Intelligent Electronic Devices (IEDs).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: Conclusion -->
+    <div class="slide cover-slide" id="slide-8">
+      <div class="slide-top-line"></div>
+      <div class="brand-badge" style="margin-bottom: 16px;">Summary & Conclusion</div>
+      <h1 class="cover-title" style="font-size: 3.8rem;">Thank You!</h1>
+      <div class="cover-subtitle" style="font-size: 1.4rem;">"Designing Safe, Reliable & Efficient Power Systems"</div>
+      
+      <div class="cover-grid" style="grid-template-columns: 1fr 1fr; margin-top: 20px;">
+        <div class="cover-item">
+          <div class="cover-label">Presenter</div>
+          <div class="cover-val" style="font-size: 1.3rem; color: var(--accent-blue);">Ahmed Ayoub</div>
+        </div>
+        <div class="cover-item">
+          <div class="cover-label">Academic Identity</div>
+          <div class="cover-val" style="font-size: 1.15rem;">Electrical Power Dept. | Tanta University</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Controls Footer -->
+  <div class="controls-bar">
+    <div class="slide-indicator">
+      Slide <span id="currentSlideNum">1</span> of <span id="totalSlideNum">8</span>
+    </div>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        Previous
+      </button>
+      <button class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)">
+        Next
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+
+    function updateSlides() {
+      for (let i = 1; i <= totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (i === currentSlide) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      }
+
+      document.getElementById('currentSlideNum').innerText = currentSlide;
+      document.getElementById('totalSlideNum').innerText = totalSlides;
+
+      const progressPercent = (currentSlide / totalSlides) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      document.getElementById('prevBtn').style.opacity = currentSlide === 1 ? '0.5' : '1';
+      document.getElementById('prevBtn').style.pointerEvents = currentSlide === 1 ? 'none' : 'auto';
+
+      if (currentSlide === totalSlides) {
+        document.getElementById('nextBtn').innerText = 'Restart';
+      } else {
+        document.getElementById('nextBtn').innerHTML = `Next <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>`;
+      }
+    }
+
+    function changeSlide(direction) {
+      currentSlide += direction;
+      if (currentSlide > totalSlides) currentSlide = 1;
+      if (currentSlide < 1) currentSlide = 1;
+      updateSlides();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft') {
+        changeSlide(-1);
+      }
+    });
+
+    function toggleFullScreen() {
+      const container = document.getElementById('presentationContainer');
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => {
+          alert(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    updateSlides();
+  </script>
+</body>
+</html>
