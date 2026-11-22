@@ -1,20 +1,28 @@
-import React from 'react';
+import { homeContent } from '../i18n/homeContent';
+import { useSiteContent } from '../utils/useSiteContent';
 
-const starStudents = [
-  { id: 1, name: 'Ahmad M.', achievement: 'Completed Juz Amma this week!', image: '/sheikh.png', delay: '0s' },
-  { id: 2, name: 'Sara Y.', achievement: 'Perfect Tajweed Score', image: '/niqab.png', delay: '1s' },
-  { id: 3, name: 'Omar K.', achievement: 'Memorized Surah Al-Baqarah', image: '/sheikh.png', delay: '2s' },
-  { id: 4, name: 'Fatima Z.', achievement: 'Obtained Ijazah in Hafs', image: '/niqab.png', delay: '3s' },
-  { id: 5, name: 'Yusuf A.', achievement: '100% Attendance this Month', image: '/sheikh.png', delay: '1.5s' }
-];
+const DEFAULTS = { en: homeContent.en.stars, ar: homeContent.ar.stars };
+const IMAGES = ['/sheikh.png', '/niqab.png'];
+const DELAYS = ['0s', '1s', '2s', '3s', '1.5s'];
 
+/** Outstanding students, edited by the admin (Dashboard → Website Content → Stars of Tarteel). */
 const StarsOfTarteelSection = () => {
+  const { ready, data } = useSiteContent('stars', DEFAULTS);
+  const starStudents = data.sections.map((s, i) => ({
+    name: s.heading,
+    text: s.text,
+    image: s.image || IMAGES[i % IMAGES.length], // uploaded photo, else the default picture
+    delay: DELAYS[i % DELAYS.length],
+  }));
+
+  if (!ready || starStudents.length === 0) return null;
+
   return (
     <section className="section" style={{ background: 'var(--bg-color)', paddingBottom: '6rem' }}>
       <div className="container">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title">Stars of Tarteel</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Hover over the stars to see this week's outstanding students.</p>
+          <h2 className="section-title">{data.title}</h2>
+          {data.intro && <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>{data.intro}</p>}
         </div>
 
         <div className="galaxy-container" style={{ 
@@ -37,7 +45,7 @@ const StarsOfTarteelSection = () => {
           
           {starStudents.map((student, index) => (
             <div 
-              key={student.id} 
+              key={index}
               className="star-student floating-star" 
               style={{ 
                 position: 'relative', 
@@ -50,7 +58,7 @@ const StarsOfTarteelSection = () => {
               <img src={student.image} alt={student.name} />
               <div className="star-tooltip" style={{ minWidth: '220px', textAlign: 'center' }}>
                 <strong style={{ color: 'var(--primary-color)', display: 'block', marginBottom: '0.2rem', fontSize: '1.2rem' }}>{student.name}</strong>
-                <span style={{ fontSize: '0.95rem' }}>{student.achievement}</span>
+                <span style={{ fontSize: '0.95rem' }}>{student.text}</span>
               </div>
             </div>
           ))}

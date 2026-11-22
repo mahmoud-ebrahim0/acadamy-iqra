@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import './RadioPage.css';
+import { useLang } from '../../i18n/lang';
 
 // Dictionary for AR/EN
 const dict = {
@@ -54,30 +55,27 @@ const RadioPage = () => {
   const [currentRadio, setCurrentRadio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  const [lang, setLang] = useState('ar');
+  // Shares the website language choice (English / Arabic).
+  const { lang, toggleLang } = useLang();
   const [activeTab, setActiveTab] = useState('reciters');
   const [searchQuery, setSearchQuery] = useState('');
-  const [favorites, setFavorites] = useState([]);
+  // Restored from localStorage on first render (ignores corrupted values).
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('radioFavorites'));
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
   const [copied, setCopied] = useState(false);
   const [sleepTimer, setSleepTimer] = useState(null);
-  const [listeningTime, setListeningTime] = useState(0);
+  const [listeningTime, setListeningTime] = useState(() => parseInt(localStorage.getItem('listeningTime'), 10) || 0);
 
   const audioRef = useRef(null);
   const location = useLocation();
 
   const t = dict[lang];
-
-  // Load Favorites and Stats from LocalStorage on mount
-  useEffect(() => {
-    const savedFavs = localStorage.getItem('radioFavorites');
-    if (savedFavs) {
-      setFavorites(JSON.parse(savedFavs));
-    }
-    const savedTime = localStorage.getItem('listeningTime');
-    if (savedTime) {
-      setListeningTime(parseInt(savedTime));
-    }
-  }, []);
 
   // Tracking timer (Listening stats & Sleep timer)
   useEffect(() => {
@@ -237,7 +235,7 @@ const RadioPage = () => {
       <div className="radio-noise"></div>
 
       <div className="lang-toggle-container">
-        <button className="lang-btn" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}>
+        <button className="lang-btn" onClick={toggleLang}>
           {lang === 'ar' ? 'English' : 'عربي'}
         </button>
       </div>

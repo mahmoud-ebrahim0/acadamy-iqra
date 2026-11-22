@@ -26,7 +26,7 @@ body {
   font-family: var(--font-body);
   background-color: var(--bg-color);
   color: var(--text-color);
-  direction: ltr;
+  /* Direction comes from <html dir> (set by the language switch): ltr for English, rtl for Arabic. */
   line-height: 1.6;
   position: relative;
 }
@@ -202,8 +202,13 @@ h1, h2, h3, h4, h5, h6, .section-title {
   color: var(--accent-color);
 }
 
-.nav-links a:hover::after {
+.nav-links a:hover::after,
+.nav-links a.active::after {
   width: 100%;
+}
+
+.nav-links a.active {
+  color: var(--accent-color);
 }
 
 .mobile-menu-btn {
@@ -482,7 +487,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   border-radius: 1.5rem;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
   margin-bottom: 1.5rem;
-  border-left: 4px solid var(--accent-color);
+  border-inline-start: 4px solid var(--accent-color);
 }
 
 .testimonial-text {
@@ -562,8 +567,8 @@ h1, h2, h3, h4, h5, h6, .section-title {
   .mobile-menu-btn {
     display: block;
     order: 1;
-    margin-right: auto;
-    margin-left: 1rem;
+    margin-inline-end: auto;
+    margin-inline-start: 1rem;
   }
 
   .login-btn {
@@ -613,7 +618,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .admin-sidebar {
   width: 260px;
   background: rgba(11, 25, 48, 0.95);
-  border-right: 1px solid rgba(250, 204, 21, 0.2);
+  border-inline-end: 1px solid rgba(250, 204, 21, 0.2);
   backdrop-filter: blur(10px);
   color: white;
   padding: 2rem 1.5rem;
@@ -654,6 +659,42 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .admin-nav a.active {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
+}
+
+/* Language switch & logout in the admin sidebar */
+.admin-lang-toggle {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 2rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.admin-nav-logout {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: start;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Right-to-left (Arabic) admin dashboard */
+.admin-layout[dir="rtl"] {
+  font-family: var(--font-body);
 }
 
 .admin-content {
@@ -712,7 +753,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 }
 
 .stat-label {
-  color: #cbd5e1;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -735,14 +776,14 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .admin-table th,
 .admin-table td {
   padding: 1rem 1.5rem;
-  text-align: left;
+  text-align: start;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .admin-table th {
-  background: rgba(0,0,0,0.4);
+  background: rgba(122, 27, 41, 0.06);
   color: var(--primary-color);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .admin-table tr:hover {
@@ -764,19 +805,24 @@ h1, h2, h3, h4, h5, h6, .section-title {
 .form-control {
   width: 100%;
   padding: 0.8rem 1rem;
-  background: rgba(0,0,0,0.3);
-  color: white;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: #ffffff;
+  color: var(--text-color);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 0.5rem;
   font-family: inherit;
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control::placeholder {
+  color: #a0aec0;
 }
 
 .form-control:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
-  background: rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 3px rgba(122, 27, 41, 0.12);
+  background: #ffffff;
 }
 
 /* --- Light Theme (Pearl Dawn) --- */
@@ -839,7 +885,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 
 [data-theme="light"] .admin-sidebar {
   background: rgba(253, 251, 247, 0.95);
-  border-right: 1px solid rgba(0,0,0,0.05);
+  border-inline-end: 1px solid rgba(0,0,0,0.05);
   color: #1e293b;
 }
 
@@ -934,7 +980,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 
 .faq-question {
   width: 100%;
-  text-align: left;
+  text-align: start;
   padding: 1.5rem;
   background: transparent;
   border: none;
@@ -1100,7 +1146,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
 
 .modal-close {
   position: absolute;
-  top: 1rem; right: 1rem;
+  top: 1rem; inset-inline-end: 1rem;
   background: transparent;
   border: none;
   font-size: 1.5rem;
@@ -1161,7 +1207,7 @@ h1, h2, h3, h4, h5, h6, .section-title {
   list-style: none;
   padding: 0;
   margin: 2rem 0;
-  text-align: left;
+  text-align: start;
   flex-grow: 1;
 }
 
@@ -1343,4 +1389,170 @@ h1, h2, h3, h4, h5, h6, .section-title {
 [data-theme="light"] .star-student {
   border-color: var(--primary-color);
   box-shadow: 0 0 20px rgba(180, 83, 9, 0.2);
+}
+/* Arabic (right-to-left): letter spacing breaks the joined Arabic letters */
+[dir="rtl"] body,
+[dir="rtl"] body * {
+  letter-spacing: normal !important;
+}
+
+/* Language switch (website): segmented EN | عربي control */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(122, 27, 41, 0.06);
+  border: 1px solid rgba(122, 27, 41, 0.15);
+  direction: ltr; /* keep EN on the left in both languages */
+  flex-shrink: 0;
+}
+
+.lang-switch button {
+  border: none;
+  background: transparent;
+  color: var(--primary-color);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  min-width: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lang-switch button:not(.active):hover {
+  background: rgba(122, 27, 41, 0.1);
+}
+
+.lang-switch button.active {
+  background: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(122, 27, 41, 0.35);
+  cursor: default;
+}
+
+.lang-switch button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Used on pages without the navbar (login, checkout) */
+.lang-switch.lang-toggle-floating {
+  position: absolute;
+  top: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 20;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* Language switch on dark sidebars (instructor dashboard) */
+.lang-switch.lang-switch-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.lang-switch.lang-switch-dark button {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lang-switch.lang-switch-dark button:not(.active):hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-switch.lang-switch-dark button.active {
+  background: #ffffff;
+  color: var(--primary-color);
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile & tablet adjustments                                          */
+/* ------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  /* Top bar: keep logo, menu button and account actions on one line */
+  .nav-logo {
+    font-size: 1.3rem;
+  }
+  .nav-logo img {
+    height: 32px !important;
+  }
+  .nav-auth {
+    order: 2;
+    gap: 0.6rem !important;
+  }
+  .nav-auth .login-btn {
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.85rem;
+  }
+
+  /* Floating "Book free trial" button: smaller so it doesn't cover the page */
+  .fab-consultation {
+    padding: 0.8rem 1.4rem;
+    font-size: 1rem;
+    bottom: 1.2rem;
+    left: 1rem;
+  }
+
+  /* Admin & instructor dashboards: sidebar becomes a top bar */
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    padding: 1rem !important;
+    border-inline-end: none;
+    border-bottom: 1px solid rgba(250, 204, 21, 0.2);
+  }
+  .admin-sidebar-logo {
+    margin-bottom: 0.8rem !important;
+    padding-inline-start: 0 !important;
+  }
+  .admin-lang-toggle,
+  .admin-sidebar .lang-switch {
+    margin-bottom: 0.8rem !important;
+    margin-inline-start: 0 !important;
+  }
+  .admin-nav,
+  .instructor-nav {
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.4rem !important;
+    padding-bottom: 0.3rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-nav a,
+  .admin-nav button,
+  .instructor-nav button {
+    white-space: nowrap;
+    width: auto !important;
+    flex-shrink: 0;
+    padding: 0.6rem 0.9rem !important;
+    margin-top: 0 !important;
+  }
+  .admin-content {
+    padding: 1.25rem 1rem;
+  }
+  .admin-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* The floating button already offers the free trial on small phones */
+  .nav-auth .login-btn {
+    display: none;
+  }
+  .lang-switch button {
+    min-width: 2.3rem;
+    padding: 0.35rem 0.6rem;
+  }
+  .admin-content h1 {
+    font-size: 1.7rem !important;
+  }
 }

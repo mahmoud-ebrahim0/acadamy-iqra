@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { clearSession, dashboardPathFor, getRole, getToken, getUserName, SESSION_EVENT } from '../utils/auth';
+import { useLang } from '../i18n/lang';
+import LangToggle from './LangToggle';
 
 import logo from '../assets/tarteel-logo-maroon.png';
 
@@ -11,19 +14,31 @@ const Navbar = () => {
   const location = useLocation();
 
   // Check auth state on render and route change
-  const token = localStorage.getItem('userToken');
-  const userName = localStorage.getItem('userName');
+  const { t, lang } = useLang();
+  const token = getToken();
+  const userName = getUserName();
+  // Inside the student area the menu shows the student's own pages instead of the home page sections.
+  const studentArea = Boolean(token) && getRole() === 'student' && location.pathname.startsWith('/dashboard');
+
+  // Re-render when the name changes (e.g. after editing the profile).
+  const [, setSessionVersion] = useState(0);
+  useEffect(() => {
+    const refresh = () => setSessionVersion(v => v + 1);
+    window.addEventListener(SESSION_EVENT, refresh);
+    return () => window.removeEventListener(SESSION_EVENT, refresh);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userName');
+    clearSession();
     window.location.href = '/home';
   };
 
-  // Close mobile menu on route change
-  useEffect(() => {
+  // Close mobile menu on route change (adjusting state during render, as React recommends).
+  const [menuPath, setMenuPath] = useState(location.pathname);
+  if (menuPath !== location.pathname) {
+    setMenuPath(location.pathname);
     setIsOpen(false);
-  }, [location]);
+  }
 
   // Hide Navbar on Scroll Down, Show on Scroll Up
   useEffect(() => {
@@ -64,38 +79,45 @@ const Navbar = () => {
 
 
 
-  const userRole = localStorage.getItem('userRole');
-
-  let dashboardLink = '/dashboard';
-  if (userRole === 'instructor') dashboardLink = '/instructor-dashboard';
-  if (userRole === 'admin') dashboardLink = '/admin';
+  const dashboardLink = dashboardPathFor(getRole());
 
   return (
     <nav className={`navbar ${showNavbar ? '' : 'navbar-hidden'}`}>
       <div className="container">
         <Link to="/home" className="nav-logo" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} style={{ gap: '10px' }}>
           <img src={logo} alt="Tarteel Academy Logo" style={{ height: '40px', width: 'auto', borderRadius: '5px' }} />
-          <span>Tarteel</span> Academy
+          {lang === 'ar'
+            ? <>{t('nav.brandRest')} <span>{t('nav.brandHighlight')}</span></>
+            : <><span>{t('nav.brandHighlight')}</span> {t('nav.brandRest')}</>}
         </Link>
         <button className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? '✕' : '☰'}
         </button>
-        <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
-          <li><a href="#hero" onClick={(e) => handleScrollTo(e, 'hero')}>Home</a></li>
-          <li><a href="#courses" onClick={(e) => handleScrollTo(e, 'courses')}>Courses</a></li>
-          <li><a href="#methodology" onClick={(e) => handleScrollTo(e, 'methodology')}>Sanad</a></li>
-          <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>FAQ</a></li>
-        </ul>
+        {studentArea ? (
+          <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
+            <li><NavLink to="/dashboard" end>{t('nav.myCourses')}</NavLink></li>
+            <li><NavLink to="/dashboard/profile">{t('nav.profile')}</NavLink></li>
+            <li><NavLink to="/courses">{t('nav.browseCourses')}</NavLink></li>
+          </ul>
+        ) : (
+          <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
+            <li><a href="#hero" onClick={(e) => handleScrollTo(e, 'hero')}>{t('nav.home')}</a></li>
+            <li><a href="#courses" onClick={(e) => handleScrollTo(e, 'courses')}>{t('nav.courses')}</a></li>
+            <li><a href="#methodology" onClick={(e) => handleScrollTo(e, 'methodology')}>{t('nav.sanad')}</a></li>
+            <li><a href="#faq" onClick={(e) => handleScrollTo(e, 'faq')}>{t('nav.faq')}</a></li>
+          </ul>
+        )}
         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }} className="nav-auth">
+          <LangToggle />
           {token ? (
             <>
-              <Link to={dashboardLink} style={{ color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.5)', fontWeight: 'bold', textDecoration: 'none' }}>Hi, {userName?.split(' ')[0]}</Link>
-              <button onClick={handleLogout} className="btn btn-outline" style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)', padding: '0.4rem 1rem' }}>Logout</button>
+              <Link to={dashboardLink} style={{ color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.5)', fontWeight: 'bold', textDecoration: 'none' }}>{t('nav.hi', { name: userName?.split(' ')[0] || '' })}</Link>
+              <button onClick={handleLogout} className="btn btn-outline" style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)', padding: '0.4rem 1rem' }}>{t('nav.logout')}</button>
             </>
           ) : (
             <>
-              <Link to="/login" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 'bold' }}>Login</Link>
-              <Link to="/signup" className="btn btn-accent login-btn" style={{ borderRadius: '50px', padding: '0.6rem 1.5rem' }}>Book Free Trial</Link>
+              <Link to="/login" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 'bold' }}>{t('nav.login')}</Link>
+              <Link to="/signup" className="btn btn-accent login-btn" style={{ borderRadius: '50px', padding: '0.6rem 1.5rem' }}>{t('nav.bookTrial')}</Link>
             </>
           )}
         </div>

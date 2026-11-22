@@ -4,9 +4,9 @@ import Course from './models/Course.js';
 import Instructor from './models/Instructor.js';
 import User from './models/User.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/quran_academy';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/quran_academy';
 
 const dummyCourses = [
     {
@@ -45,21 +45,24 @@ const dummyInstructors = [
         rank: "Senior Qari",
         schedule: "Mon, Wed, Fri (18:00 - 21:00)",
         attendance: 98,
-        salary: "$1,500"
+        salary: "$1,500",
+        gender: "male"
     },
     {
         name: "Ustadha Fatima Zahra",
         rank: "Tajweed Specialist",
         schedule: "Tue, Thu (10:00 - 14:00)",
         attendance: 100,
-        salary: "$1,200"
+        salary: "$1,200",
+        gender: "female"
     },
     {
         name: "Sheikh Omar Al-Faruq",
         rank: "Hifz Master",
         schedule: "Weekends (08:00 - 12:00)",
         attendance: 95,
-        salary: "$1,800"
+        salary: "$1,800",
+        gender: "male"
     }
 ];
 

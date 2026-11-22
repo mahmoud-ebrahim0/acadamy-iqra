@@ -5,7 +5,8 @@ const payoutSchema = new mongoose.Schema({
     invoiceId: { type: String, required: true },
     amount: { type: String, required: true },
     method: { type: String, required: true },
-    status: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Paid', 'Rejected'], default: 'Pending' },
+    processedAt: { type: Date },
     details: { type: String },
     date: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }

@@ -7,13 +7,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-icon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-icon.svg', 'og-image.png'],
       manifest: {
-        name: 'أكاديمية اقرأ - Iqra Academy',
-        short_name: 'Iqra Academy',
-        description: 'استمع للقرآن الكريم وتعلم عبر أكاديمية اقرأ.',
-        theme_color: '#0a0b0a',
-        background_color: '#0a0b0a',
+        name: 'Tarteel Academy - أكاديمية ترتيل',
+        short_name: 'Tarteel',
+        description: 'تعلّم القرآن الكريم والتجويد مع معلمين من الأزهر الشريف - Learn the Quran with Al-Azhar teachers.',
+        theme_color: '#7A1B29',
+        background_color: '#FDFBF7',
         display: 'standalone',
         icons: [
           {

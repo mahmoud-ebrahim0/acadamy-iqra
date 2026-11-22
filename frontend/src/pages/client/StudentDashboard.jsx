@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { API_URL } from '../../utils/api';
+import { fetchWithAuth, readJson } from '../../utils/api';
+import { getUserName } from '../../utils/auth';
+import { useLang } from '../../i18n/lang';
 
 const StudentDashboard = () => {
   const formatZoomLink = (link) => {
@@ -13,29 +15,28 @@ const StudentDashboard = () => {
     return link;
   };
 
-  const userName = localStorage.getItem('userName') || 'Student';
+  const { t } = useLang();
+  const userName = getUserName() || t('student.defaultName');
   const firstName = userName.split(' ')[0];
-  const userId = localStorage.getItem('userId');
+  const [searchParams] = useSearchParams();
+  const paymentSucceeded = searchParams.get('payment') === 'success';
 
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
-    if (userId) {
-      fetch(`${API_URL}/api/student/dashboard?userId=${userId}`)
-        .then(res => res.json())
-        .then(data => {
-          setEnrollments(data.enrollments || []);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error(err);
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, [userId]);
+    // The server returns only the logged-in student's enrollments (identified by the token).
+    fetchWithAuth('/api/student/dashboard')
+      .then(async res => {
+        const data = await readJson(res);
+        if (res.ok) setEnrollments(data.enrollments || []);
+        // Store what went wrong; it is translated when shown (so it follows language changes).
+        else setLoadError(data.message || 'student.loadError');
+      })
+      .catch(() => setLoadError('student.connection'))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
@@ -48,20 +49,34 @@ const StudentDashboard = () => {
         <div className="asteroid" style={{ top: '70%', left: '20%', width: '12px', height: '12px', animationDelay: '6s' }}></div>
 
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          
+
+          {paymentSucceeded && (
+            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#059669', padding: '1rem', borderRadius: '1rem', marginBottom: '2rem', textAlign: 'center' }}>
+              {t('student.paymentSuccess')}
+            </div>
+          )}
+
+          {enrollments.some(e => e.paymentStatus === 'Pending') && (
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.4)', color: '#b45309', padding: '1rem', borderRadius: '1rem', marginBottom: '2rem', textAlign: 'center' }}>
+              {t('student.pendingNotice')}
+            </div>
+          )}
+
           {loading ? (
-             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--primary-color)' }}>Loading your dashboard...</div>
+             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--primary-color)' }}>{t('student.loading')}</div>
+          ) : loadError ? (
+             <div style={{ textAlign: 'center', padding: '3rem', color: '#ef4444' }}>{loadError.startsWith('student.') ? t(loadError) : t.server(loadError)}</div>
           ) : enrollments.length === 0 ? (
             /* New Student Welcome Card */
             <div className="course-card" style={{ padding: '4rem 2rem', marginTop: '2rem', marginBottom: '3rem', textAlign: 'center', border: '1px solid rgba(250, 204, 21, 0.4)', boxShadow: '0 0 40px rgba(250, 204, 21, 0.1), inset 0 0 20px rgba(250, 204, 21, 0.1)' }}>
               <h1 style={{ color: 'var(--primary-color)', fontSize: '2.8rem', marginBottom: '1.5rem', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)', fontFamily: 'var(--font-heading)' }}>
-                Welcome to Tarteel Academy, {firstName}! ✨
+                {t('student.welcomeNew', { name: firstName })}
               </h1>
-              <p style={{ fontSize: '1.2rem', color: '#cbd5e1', marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
-                Your journey to mastering the Quran begins here. We noticed you haven't enrolled in any courses or packages yet. Let's get started!
+              <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+                {t('student.newText')}
               </p>
               <Link to="/home" className="btn btn-accent" style={{ padding: '1rem 3rem', fontSize: '1.2rem', borderRadius: '50px', display: 'inline-block' }}>
-                📚 Browse Courses & Packages
+                {t('student.browse')}
               </Link>
             </div>
           ) : (
@@ -69,48 +84,55 @@ const StudentDashboard = () => {
               {/* Welcome Card for Active Students */}
               <div className="course-card" style={{ padding: '3rem', marginBottom: '3rem', textAlign: 'center', border: '1px solid rgba(250, 204, 21, 0.4)', boxShadow: '0 0 40px rgba(250, 204, 21, 0.1), inset 0 0 20px rgba(250, 204, 21, 0.1)' }}>
                 <h1 style={{ color: 'var(--primary-color)', fontSize: '2.5rem', marginBottom: '1rem', textShadow: '0 0 15px rgba(250, 204, 21, 0.5)' }}>
-                  Welcome back, {firstName}! 🌟
+                  {t('student.welcomeBack', { name: firstName })}
                 </h1>
-                <p style={{ fontSize: '1.2rem', color: '#cbd5e1' }}>Are you ready for your recitation today? Your journey to mastery continues.</p>
+                <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>{t('student.readyText')}</p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))', gap: '2rem' }}>
                 
                 {/* Schedule Section */}
                 <div className="course-card" style={{ padding: '2rem' }}>
-                  <h2 style={{ color: 'var(--accent-color)', marginBottom: '1.5rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.4)' }}>📅 Upcoming Classes</h2>
+                  <h2 style={{ color: 'var(--accent-color)', marginBottom: '1.5rem', textShadow: '0 0 10px rgba(56, 189, 248, 0.4)' }}>{t('student.upcoming')}</h2>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {enrollments.filter(e => e.scheduleTime).length > 0 ? enrollments.filter(e => e.scheduleTime).map(enr => (
-                      <div key={enr._id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--accent-color)' }}>
-                        <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>{enr.course?.title || 'Enrolled Course (Title Unavailable)'}</h3>
-                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                          👤 {enr.instructor?.name || 'Pending Instructor'} &nbsp;|&nbsp; 🕒 {enr.scheduleTime}
+                      <div key={enr._id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '1rem', borderInlineStart: '4px solid var(--accent-color)' }}>
+                        <h3 style={{ color: 'var(--text-color)', marginBottom: '0.5rem' }}>{enr.course?.title || t('student.courseUnavailable')}</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                          👤 {enr.instructor?.name || t('student.pendingInstructor')} &nbsp;|&nbsp; 🕒 {enr.scheduleTime}
                         </p>
                         {enr.zoomLink ? (
-                          <a href={formatZoomLink(enr.zoomLink)} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>🎥 Join Zoom Class</a>
+                          <a href={formatZoomLink(enr.zoomLink)} target="_blank" rel="noreferrer" className="btn btn-accent" style={{ width: '100%', padding: '0.6rem', textAlign: 'center', display: 'block' }}>{t('student.joinZoom')}</a>
                         ) : (
-                          <button className="btn btn-outline" style={{ width: '100%', padding: '0.6rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>No Link Yet</button>
+                          <button className="btn btn-outline" style={{ width: '100%', padding: '0.6rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>{t('student.noLink')}</button>
                         )}
                       </div>
                     )) : (
-                      <p style={{ color: 'var(--text-muted)' }}>You have no upcoming classes scheduled.</p>
+                      <p style={{ color: 'var(--text-muted)' }}>{t('student.noClasses')}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Progress Section */}
                 <div className="course-card" style={{ padding: '2rem' }}>
-                  <h2 style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', textShadow: '0 0 10px rgba(250, 204, 21, 0.4)' }}>📈 Your Progress</h2>
+                  <h2 style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', textShadow: '0 0 10px rgba(250, 204, 21, 0.4)' }}>{t('student.progress')}</h2>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                     {enrollments.map(enr => (
                       <div key={enr._id}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: '#fff', fontWeight: 'bold' }}>{enr.course?.title || 'Enrolled Course (Title Unavailable)'}</span>
+                          <span style={{ color: 'var(--text-color)', fontWeight: 'bold' }}>
+                            {enr.course?.title || t('student.courseUnavailable')}
+                            {enr.paymentStatus !== 'Paid' && (
+                              <span style={{ marginInlineStart: '0.5rem', fontSize: '0.8rem', color: enr.paymentStatus === 'Failed' ? '#ef4444' : '#f59e0b' }}>
+                                ({enr.paymentStatus === 'Failed' ? t('student.paymentFailed') : t('student.awaitingPayment')})
+                              </span>
+                            )}
+                          </span>
                           <span style={{ color: 'var(--primary-color)' }}>{enr.progressPercentage}%</span>
                         </div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Current Lesson: {enr.currentAyahOrLesson}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{t('student.currentLesson', { lesson: enr.currentAyahOrLesson === 'Beginning' ? t('student.beginning') : enr.currentAyahOrLesson })}</div>
                         {/* Progress Bar Container */}
                         <div style={{ width: '100%', height: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 0 5px rgba(0,0,0,0.5)' }}>
                           {/* Golden Progress Fill */}
@@ -128,7 +150,7 @@ const StudentDashboard = () => {
                   </div>
 
                   <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-                    <Link to="/home" className="btn btn-outline" style={{ width: '100%' }}>Browse More Courses</Link>
+                    <Link to="/home" className="btn btn-outline" style={{ width: '100%' }}>{t('student.browseMore')}</Link>
                   </div>
                 </div>
 
