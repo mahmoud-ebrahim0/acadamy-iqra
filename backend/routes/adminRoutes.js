@@ -5,6 +5,7 @@ import Instructor from '../models/Instructor.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
 import Attendance from '../models/Attendance.js';
+import ClassReport from '../models/ClassReport.js';
 import Payout from '../models/Payout.js';
 import Page, { PAGE_SLUGS } from '../models/Page.js';
 import { protect, adminOnly } from '../middleware/authMiddleware.js';
@@ -45,8 +46,27 @@ router.use(protect, adminOnly);
 // Courses
 // ---------------------------------------------------------------------------
 
+// Courses with their numbers: students enrolled, paid (active) enrollments and revenue.
 router.get('/courses', async (req, res) => {
-    res.json(await Course.find().sort({ createdAt: 1 }));
+    const [courses, rows] = await Promise.all([
+        Course.find().sort({ createdAt: 1 }).lean(),
+        Enrollment.aggregate([
+            {
+                $group: {
+                    _id: '$course',
+                    students: { $sum: 1 },
+                    active: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Paid'] }, 1, 0] } },
+                    pending: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Pending'] }, 1, 0] } },
+                },
+            },
+        ]),
+    ]);
+    const statsBy = new Map(rows.map(({ _id, ...rest }) => [String(_id), rest]));
+    res.json(courses.map((c) => {
+        const s = statsBy.get(String(c._id)) || { students: 0, active: 0, pending: 0 };
+        const price = Number(c.price) || 0;
+        return { ...c, published: c.published !== false, stats: { ...s, revenue: s.active * price } };
+    }));
 });
 
 router.post('/courses', upload.single('image'), async (req, res) => {
@@ -97,6 +117,7 @@ router.put('/courses/:id', upload.single('image'), async (req, res) => {
         update.price = String(price);
     }
     if (body.icon !== undefined) update.icon = cleanText(body.icon, 10) || '📚';
+    if (body.published !== undefined) update.published = body.published === true || body.published === 'true';
     if (req.file) update.imageUrl = fileUrl(req, req.file);
     else if (body.removeImage === 'true') update.imageUrl = '';
 
@@ -109,6 +130,11 @@ router.put('/courses/:id', upload.single('image'), async (req, res) => {
 });
 
 router.delete('/courses/:id', async (req, res) => {
+    if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: 'Invalid ID.' });
+    // A course with students can't be deleted (their enrollments would lose their course): hide it instead.
+    if (await Enrollment.exists({ course: req.params.id })) {
+        return res.status(409).json({ success: false, message: 'This course has enrolled students. Hide it from the website instead of deleting it.' });
+    }
     const deleted = await Course.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, message: 'Course not found.' });
     res.json({ success: true, message: 'Course deleted successfully.' });
@@ -122,13 +148,9 @@ const pickInstructorFields = (body) => {
     const fields = {};
     if (body.name !== undefined) fields.name = cleanText(body.name, 100);
     if (body.rank !== undefined) fields.rank = cleanText(body.rank, 100);
-    if (body.schedule !== undefined) fields.schedule = cleanText(body.schedule, 200);
     if (body.salary !== undefined) fields.salary = cleanText(body.salary, 50);
     if (body.gender === 'male' || body.gender === 'female') fields.gender = body.gender;
-    if (body.attendance !== undefined) {
-        const attendance = Number(body.attendance);
-        if (Number.isFinite(attendance)) fields.attendance = Math.min(100, Math.max(0, attendance));
-    }
+    // Attendance and schedule are not typed by the admin: they are calculated from real data (see GET /instructors).
     return fields;
 };
 
@@ -140,7 +162,57 @@ router.get('/instructors', async (req, res) => {
         .select('email')
         .lean();
     const emails = new Map(accounts.map((a) => [String(a._id), a.email]));
-    res.json(instructors.map((i) => ({ ...i, email: emails.get(String(i._id)) || '' })));
+
+    const ids = instructors.map((i) => i._id);
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const [attendanceRows, enrollments] = await Promise.all([
+        // Real attendance recorded by each instructor: all time and this month.
+        Attendance.aggregate([
+            { $match: { instructor: mongoose.trusted({ $in: ids }) } },
+            {
+                $group: {
+                    _id: '$instructor',
+                    present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } },
+                    absent: { $sum: { $cond: [{ $eq: ['$status', 'Absent'] }, 1, 0] } },
+                    monthPresent: { $sum: { $cond: [{ $and: [{ $eq: ['$status', 'Present'] }, { $eq: [{ $substrCP: ['$date', 0, 7] }, thisMonth] }] }, 1, 0] } },
+                    monthAbsent: { $sum: { $cond: [{ $and: [{ $eq: ['$status', 'Absent'] }, { $eq: [{ $substrCP: ['$date', 0, 7] }, thisMonth] }] }, 1, 0] } },
+                },
+            },
+        ]),
+        // Their students' class times (set by the instructor or the admin).
+        Enrollment.find({ instructor: mongoose.trusted({ $in: ids }) })
+            .select('instructor student course scheduleDays scheduleClock scheduleTime')
+            .populate('student', 'name')
+            .populate('course', 'title')
+            .lean(),
+    ]);
+
+    const attendanceBy = new Map(attendanceRows.map(({ _id, ...rest }) => [String(_id), rest]));
+    const classesBy = new Map();
+    for (const e of enrollments) {
+        const key = String(e.instructor);
+        if (!classesBy.has(key)) classesBy.set(key, []);
+        classesBy.get(key).push({
+            enrollmentId: e._id,
+            student: e.student?.name || '',
+            course: e.course?.title || '',
+            days: e.scheduleDays || [],
+            clock: e.scheduleClock || '',
+            text: e.scheduleTime || '',
+        });
+    }
+
+    res.json(instructors.map((i) => {
+        const { schedule: _legacySchedule, attendance: _legacyAttendance, ...profile } = i;
+        const classes = classesBy.get(String(i._id)) || [];
+        return {
+            ...profile,
+            email: emails.get(String(i._id)) || '',
+            attendanceStats: attendanceBy.get(String(i._id)) || { present: 0, absent: 0, monthPresent: 0, monthAbsent: 0 },
+            students: classes,
+            weeklyClasses: classes.reduce((sum, c) => sum + c.days.length, 0),
+        };
+    }));
 });
 
 // Creates the instructor's login account and profile together (same _id).
@@ -149,8 +221,8 @@ router.post('/instructors', async (req, res) => {
     const fields = pickInstructorFields(body);
     const email = normalizeEmail(body.email);
 
-    if (!fields.name || !fields.rank || !fields.schedule || !fields.salary) {
-        return res.status(400).json({ success: false, message: 'Name, rank, schedule and salary are required.' });
+    if (!fields.name || !fields.rank || !fields.salary) {
+        return res.status(400).json({ success: false, message: 'Name, rank and salary are required.' });
     }
     if (!isValidEmail(email)) {
         return res.status(400).json({ success: false, message: 'A valid login email is required for the instructor.' });
@@ -172,19 +244,137 @@ router.post('/instructors', async (req, res) => {
     }
 });
 
+// Everything an admin needs to follow an instructor's work: their students, schedules,
+// recorded attendance and class reports (read-only overview).
+router.get('/instructors/:id/activity', async (req, res) => {
+    if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: 'Invalid ID.' });
+    const instructor = await Instructor.findById(req.params.id).select('name rank gender salary createdAt').lean();
+    if (!instructor) return res.status(404).json({ success: false, message: 'Instructor not found.' });
+
+    const account = await User.findOne({ _id: instructor._id, role: 'instructor' }).select('email').lean();
+    const enrollments = await Enrollment.find({ instructor: instructor._id })
+        .select('student course scheduleDays scheduleClock scheduleTime progressPercentage currentAyahOrLesson status paymentStatus enrolledAt')
+        .populate('student', 'name')
+        .populate('course', 'title')
+        .sort({ enrolledAt: 1 })
+        .lean();
+    const enrollmentIds = enrollments.map((e) => e._id);
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const [attendanceRows, reportRows, recentReports, recent30] = await Promise.all([
+        Attendance.aggregate([
+            { $match: { enrollment: mongoose.trusted({ $in: enrollmentIds }) } },
+            {
+                $group: {
+                    _id: '$enrollment',
+                    present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } },
+                    absent: { $sum: { $cond: [{ $eq: ['$status', 'Absent'] }, 1, 0] } },
+                    monthPresent: { $sum: { $cond: [{ $and: [{ $eq: ['$status', 'Present'] }, { $eq: [{ $substrCP: ['$date', 0, 7] }, thisMonth] }] }, 1, 0] } },
+                    monthAbsent: { $sum: { $cond: [{ $and: [{ $eq: ['$status', 'Absent'] }, { $eq: [{ $substrCP: ['$date', 0, 7] }, thisMonth] }] }, 1, 0] } },
+                    lastDate: { $max: '$date' },
+                },
+            },
+        ]),
+        ClassReport.aggregate([
+            { $match: { enrollment: mongoose.trusted({ $in: enrollmentIds }) } },
+            {
+                $group: {
+                    _id: '$enrollment',
+                    count: { $sum: 1 },
+                    lastDate: { $max: '$date' },
+                    memorization: { $avg: '$memorization' },
+                    tajweed: { $avg: '$tajweed' },
+                },
+            },
+        ]),
+        ClassReport.find({ enrollment: mongoose.trusted({ $in: enrollmentIds }) })
+            .select('enrollment date recited homework notes memorization tajweed')
+            .sort({ date: -1, updatedAt: -1 })
+            .limit(15)
+            .lean(),
+        Promise.all([
+            Attendance.countDocuments({ enrollment: mongoose.trusted({ $in: enrollmentIds }), date: mongoose.trusted({ $gte: since30 }) }),
+            ClassReport.countDocuments({ enrollment: mongoose.trusted({ $in: enrollmentIds }), date: mongoose.trusted({ $gte: since30 }) }),
+        ]),
+    ]);
+
+    const attendanceBy = new Map(attendanceRows.map(({ _id, ...rest }) => [String(_id), rest]));
+    const reportsBy = new Map(reportRows.map(({ _id, ...rest }) => [String(_id), rest]));
+    const nameBy = new Map(enrollments.map((e) => [String(e._id), e.student?.name || '']));
+    const emptyAttendance = { present: 0, absent: 0, monthPresent: 0, monthAbsent: 0, lastDate: null };
+    const emptyReports = { count: 0, lastDate: null, memorization: null, tajweed: null };
+
+    const students = enrollments.map((e) => ({
+        ...e,
+        attendance: attendanceBy.get(String(e._id)) || emptyAttendance,
+        reports: reportsBy.get(String(e._id)) || emptyReports,
+    }));
+    const latest = (key) => students.reduce((max, s) => (s[key].lastDate && (!max || s[key].lastDate > max) ? s[key].lastDate : max), null);
+
+    res.json({
+        instructor: { ...instructor, email: account?.email || '' },
+        students,
+        recentReports: recentReports.map((r) => ({ ...r, studentName: nameBy.get(String(r.enrollment)) || '' })),
+        summary: {
+            students: students.length,
+            weeklyClasses: students.reduce((sum, s) => sum + (s.scheduleDays?.length || 0), 0),
+            present: students.reduce((sum, s) => sum + s.attendance.present, 0),
+            absent: students.reduce((sum, s) => sum + s.attendance.absent, 0),
+            attendanceLast30: recent30[0],
+            reportsLast30: recent30[1],
+            lastAttendanceDate: latest('attendance'),
+            lastReportDate: latest('reports'),
+        },
+    });
+});
+
+// Edit an instructor. Optional login changes: `email` (change it, or create a login for an instructor
+// who has none – then `password` is required too) and `password` (reset; signs them out everywhere).
 router.put('/instructors/:id', async (req, res) => {
-    const fields = pickInstructorFields(req.body || {});
+    const body = req.body || {};
+    const fields = pickInstructorFields(body);
     if (Object.values(fields).some((v) => v === '')) {
         return res.status(400).json({ success: false, message: 'Fields cannot be empty.' });
     }
 
-    const instructor = await Instructor.findByIdAndUpdate(req.params.id, fields, { new: true, runValidators: true });
-    if (!instructor) return res.status(404).json({ success: false, message: 'Instructor not found.' });
+    const existing = await Instructor.findById(req.params.id).select('name').lean();
+    if (!existing) return res.status(404).json({ success: false, message: 'Instructor not found.' });
+    const account = await User.findOne({ _id: existing._id, role: 'instructor' }).select('+password');
 
-    if (fields.name) {
-        await User.updateOne({ _id: instructor._id, role: 'instructor' }, { name: fields.name });
+    // --- validate login changes before saving anything ---
+    const wantsEmail = typeof body.email === 'string' && body.email.trim() !== '';
+    const wantsPassword = typeof body.password === 'string' && body.password !== '';
+    const email = wantsEmail ? normalizeEmail(body.email) : '';
+    if (wantsEmail && !isValidEmail(email)) {
+        return res.status(400).json({ success: false, message: 'A valid login email is required for the instructor.' });
     }
-    res.json(instructor);
+    if (wantsPassword && !isValidPassword(body.password)) {
+        return res.status(400).json({ success: false, message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters.` });
+    }
+    if (!account && (wantsEmail || wantsPassword) && !(wantsEmail && wantsPassword)) {
+        return res.status(400).json({ success: false, message: 'To create a login, enter both an email and a password.' });
+    }
+    if (wantsEmail && (!account || email !== account.email)
+        && await User.exists({ email, _id: mongoose.trusted({ $ne: existing._id }) })) {
+        return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
+    }
+
+    const instructor = await Instructor.findByIdAndUpdate(existing._id, fields, { new: true, runValidators: true }).lean();
+    const name = fields.name || instructor.name;
+
+    let loginEmail = account?.email || '';
+    if (account) {
+        account.name = name;
+        if (wantsEmail) account.email = email;
+        if (wantsPassword) account.password = body.password; // hashed by the model; old sessions stop working
+        await account.save();
+        loginEmail = account.email;
+    } else if (wantsEmail && wantsPassword) {
+        await User.create({ _id: existing._id, name, email, password: body.password, role: 'instructor' });
+        loginEmail = email;
+    }
+    res.json({ ...instructor, email: loginEmail });
 });
 
 router.delete('/instructors/:id', async (req, res) => {
@@ -287,12 +477,49 @@ router.put('/payouts/:id', async (req, res) => {
 });
 
 router.get('/stats', async (req, res) => {
-    const [totalCourses, totalInstructors, totalStudents] = await Promise.all([
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonth = now.toISOString().slice(0, 7);
+
+    const [
+        totalCourses, totalInstructors, totalStudents, newStudents,
+        enrollments, monthAttendance, pendingPayouts,
+    ] = await Promise.all([
         Course.countDocuments(),
         Instructor.countDocuments(),
         User.countDocuments({ role: 'student' }),
+        User.countDocuments({ role: 'student', createdAt: mongoose.trusted({ $gte: monthStart }) }),
+        Enrollment.find().select('paymentStatus instructor scheduleDays scheduleTime enrolledAt course').populate('course', 'price').lean(),
+        Attendance.find({ date: mongoose.trusted({ $regex: `^${thisMonth}-` }) }).select('status').lean(),
+        Payout.find({ status: 'Pending' }).select('amount').lean(),
     ]);
-    res.json({ totalCourses, totalInstructors, totalStudents });
+
+    const priceOf = (e) => Number(String(e.course?.price ?? '').replace(/[^0-9.]/g, '')) || 0;
+    const paid = enrollments.filter((e) => e.paymentStatus === 'Paid');
+    const present = monthAttendance.filter((a) => a.status === 'Present').length;
+    const absent = monthAttendance.length - present;
+
+    res.json({
+        // Kept for older clients.
+        totalCourses, totalInstructors, totalStudents,
+        newStudentsThisMonth: newStudents,
+        enrollments: {
+            total: enrollments.length,
+            active: paid.length,
+        },
+        // Approximate: course price of paid enrollments that started this month.
+        revenueThisMonth: paid.filter((e) => e.enrolledAt >= monthStart).reduce((sum, e) => sum + priceOf(e), 0),
+        revenueTotal: paid.reduce((sum, e) => sum + priceOf(e), 0),
+        attendanceThisMonth: { present, absent, rate: monthAttendance.length ? Math.round((present / monthAttendance.length) * 100) : null },
+        // Things waiting for the admin.
+        needsAttention: {
+            pendingPayments: enrollments.filter((e) => e.paymentStatus === 'Pending').length,
+            unassigned: enrollments.filter((e) => !e.instructor && e.paymentStatus !== 'Failed').length,
+            noSchedule: enrollments.filter((e) => e.instructor && !(e.scheduleDays?.length) && !e.scheduleTime).length,
+            pendingPayouts: pendingPayouts.length,
+            pendingPayoutsAmount: pendingPayouts.reduce((sum, p) => sum + (Number(String(p.amount).replace(/[^0-9.]/g, '')) || 0), 0),
+        },
+    });
 });
 
 const populateEnrollment = (query) =>
@@ -323,7 +550,6 @@ router.put('/enrollments/:id', async (req, res) => {
         }
     }
 
-    if (scheduleTime !== undefined) update.scheduleTime = cleanText(scheduleTime, 100);
 
     if (zoomLink !== undefined) {
         const link = cleanText(zoomLink, 500);
@@ -337,6 +563,15 @@ router.put('/enrollments/:id', async (req, res) => {
     if (!enrollment) return res.status(404).json({ success: false, message: 'Enrollment not found.' });
 
     enrollment.set(update);
+    // Typing a new free-text time replaces the instructor's day/time schedule.
+    if (scheduleTime !== undefined) {
+        const text = cleanText(scheduleTime, 100);
+        if (text !== enrollment.scheduleTime) {
+            enrollment.scheduleTime = text;
+            enrollment.scheduleDays = [];
+            enrollment.scheduleClock = '';
+        }
+    }
     // A confirmed payment activates the enrollment.
     if (update.paymentStatus === 'Paid' && enrollment.status === 'Pending') enrollment.status = 'Active';
     await enrollment.save();
@@ -348,6 +583,7 @@ router.delete('/enrollments/:id', async (req, res) => {
     const deleted = await Enrollment.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, message: 'Enrollment not found.' });
     await Attendance.deleteMany({ enrollment: deleted._id });
+    await ClassReport.deleteMany({ enrollment: deleted._id });
     res.json({ success: true, message: 'Enrollment deleted successfully.' });
 });
 

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../utils/api';
 import { useLang } from '../i18n/lang';
+import { instructorBio, instructorImage } from '../utils/instructorProfile';
 
-const FEMALE_HINTS = ['ustazah', 'ustadha', 'ustadhah', 'sheikha', 'female', 'أستاذة', 'الأستاذة', 'الشيخة', 'معلمة', 'المعلمة'];
 const SENIOR_HINTS = ['senior', 'qari', 'specialist', 'ijazah', 'قارئ', 'مقرئ', 'متخصص', 'إجازة', 'كبار'];
 const isSenior = (rank) => SENIOR_HINTS.some(hint => rank.toLowerCase().includes(hint));
 
 const InstructorsSection = () => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [instructors, setInstructors] = useState([]);
 
   useEffect(() => {
@@ -25,13 +25,9 @@ const InstructorsSection = () => {
     fetchInstructors();
   }, []);
 
-  // Picture by the gender the admin chose; older records without it fall back to the name/title.
-  const getImage = (inst) => {
-    if (inst.gender === 'female') return '/niqab.png';
-    if (inst.gender === 'male') return '/sheikh.png';
-    const text = `${inst.name || ''} ${inst.rank || ''}`.toLowerCase();
-    return FEMALE_HINTS.some(hint => text.includes(hint)) ? '/niqab.png' : '/sheikh.png';
-  };
+  // The instructor's own photo, or a default picture by gender.
+  const getImage = instructorImage;
+  const bioOf = (inst) => instructorBio(inst, lang);
 
   // Split instructors into two tiers based on rank (just to match the old UI logic)
   const safeInstructors = Array.isArray(instructors) ? instructors : [];
@@ -69,7 +65,8 @@ const InstructorsSection = () => {
                     <img src={getImage(inst)} alt={inst.name} />
                   </div>
                   <h4 style={{ color: 'var(--text-color)', fontSize: '1.4rem', marginBottom: '0.5rem' }}>{inst.name}</h4>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>{inst.rank}</p>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '0.6rem' }}>{inst.rank}</p>
+                  {bioOf(inst) && <p className="inst-bio">{bioOf(inst)}</p>}
                 </div>
               ))}
             </div>
@@ -89,7 +86,8 @@ const InstructorsSection = () => {
                     <img src={getImage(inst)} alt={inst.name} />
                   </div>
                   <h4 style={{ color: 'var(--text-color)', fontSize: '1.2rem', marginBottom: '0.5rem' }}>{inst.name}</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{inst.rank}</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{inst.rank}</p>
+                  {bioOf(inst) && <p className="inst-bio">{bioOf(inst)}</p>}
                 </div>
               ))}
             </div>

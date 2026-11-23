@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
+import Instructor from '../models/Instructor.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import { authResponse } from '../utils/token.js';
@@ -58,6 +59,8 @@ router.put('/profile', authLimiter, async (req, res) => {
     user.name = cleanName;
     user.phone = cleanPhone;
     await user.save();
+    // Instructors also appear by name on the website and to students: keep their public profile in sync.
+    if (user.role === 'instructor') await Instructor.updateOne({ _id: user._id }, { name: cleanName });
     res.json({ ...(await profileOf(user)), message: 'Profile saved.' });
 });
 

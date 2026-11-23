@@ -36,20 +36,23 @@ const PASSWORD_RULE = `Password must be at least ${PASSWORD_MIN_LENGTH} characte
 // Public catalogue
 // ---------------------------------------------------------------------------
 
+// Only courses the admin has not hidden. (`$ne: false` also includes older courses without the field.)
+const PUBLISHED = { published: mongoose.trusted({ $ne: false }) };
+
 router.get('/courses', async (req, res) => {
-    const courses = await Course.find().sort({ createdAt: 1 }).lean();
+    const courses = await Course.find(PUBLISHED).sort({ createdAt: 1 }).lean();
     res.json(courses);
 });
 
 router.get('/courses/:id', async (req, res) => {
-    const course = await Course.findById(req.params.id).lean();
+    const course = await Course.findOne({ _id: req.params.id, ...PUBLISHED }).lean();
     if (!course) return res.status(404).json({ success: false, message: 'Course not found.' });
     res.json(course);
 });
 
 // Only public profile fields – salary / attendance are internal data.
 router.get('/instructors', async (req, res) => {
-    const instructors = await Instructor.find().select('name rank gender').sort({ createdAt: 1 }).lean();
+    const instructors = await Instructor.find().select('name rank gender photoUrl bioAr bioEn').sort({ createdAt: 1 }).lean();
     res.json(instructors);
 });
 
@@ -68,7 +71,7 @@ router.get('/stats', async (req, res) => {
     const [students, instructors, courses, classesAttended] = await Promise.all([
         User.countDocuments({ role: 'student' }),
         Instructor.countDocuments(),
-        Course.countDocuments(),
+        Course.countDocuments(PUBLISHED),
         Attendance.countDocuments({ status: 'Present' }),
     ]);
     res.set('Cache-Control', 'public, max-age=300');
@@ -249,7 +252,7 @@ router.post('/checkout', checkoutLimiter, optionalAuth, upload.single('screensho
     if (!isValidObjectId(courseId)) return fail(400, 'Invalid course.');
     if (!PAYMENT_METHODS.includes(paymentMethod)) return fail(400, 'Please choose a valid payment method.');
 
-    const course = await Course.findById(courseId);
+    const course = await Course.findOne({ _id: courseId, ...PUBLISHED });
     if (!course) return fail(404, 'Course not found.');
 
     const price = parsePrice(course.price);

@@ -7,6 +7,8 @@ const courseSchema = new mongoose.Schema({
     level: { type: String, required: true },
     icon: { type: String, default: '📚' },
     imageUrl: { type: String, default: '' },
+    // Hidden courses stay in the dashboard (with their students) but are not shown or sold on the website.
+    published: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
 });
 

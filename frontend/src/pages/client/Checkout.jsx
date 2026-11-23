@@ -92,7 +92,7 @@ const Checkout = () => {
           window.location.href = data.url;
           return;
         }
-        navigate('/dashboard');
+        navigate('/dashboard/courses', { replace: true });
       } else {
         setError(t.server(data.message) || t('checkout.failed'));
       }

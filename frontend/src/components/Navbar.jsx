@@ -18,7 +18,8 @@ const Navbar = () => {
   const token = getToken();
   const userName = getUserName();
   // Inside the student area the menu shows the student's own pages instead of the home page sections.
-  const studentArea = Boolean(token) && getRole() === 'student' && location.pathname.startsWith('/dashboard');
+  // Logged-in students see links to their portal instead of the marketing sections (e.g. on checkout).
+  const studentArea = Boolean(token) && getRole() === 'student';
 
   // Re-render when the name changes (e.g. after editing the profile).
   const [, setSessionVersion] = useState(0);
@@ -95,9 +96,9 @@ const Navbar = () => {
         </button>
         {studentArea ? (
           <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
-            <li><NavLink to="/dashboard" end>{t('nav.myCourses')}</NavLink></li>
-            <li><NavLink to="/dashboard/profile">{t('nav.profile')}</NavLink></li>
-            <li><NavLink to="/courses">{t('nav.browseCourses')}</NavLink></li>
+            <li><NavLink to="/dashboard" end>{t('portal.nav.home')}</NavLink></li>
+            <li><NavLink to="/dashboard/courses">{t('nav.myCourses')}</NavLink></li>
+            <li><NavLink to="/dashboard/browse">{t('nav.browseCourses')}</NavLink></li>
           </ul>
         ) : (
           <ul className={`nav-links ${isOpen ? 'active' : ''}`}>

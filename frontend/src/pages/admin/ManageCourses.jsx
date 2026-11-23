@@ -1,248 +1,243 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchWithAuth, readJson } from '../../utils/api';
 import { useAdminLang } from '../../i18n/lang';
 
-const EMPTY_COURSE = { title: '', age: '', description: '', price: '', image: null };
+const EMPTY_FORM = { _id: null, title: '', level: '', description: '', price: '', imageUrl: '', newImage: null, previewUrl: '', removeImage: false };
+const money = (value) => `$${Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 
+/** Admin: courses as cards with their numbers; add / edit in one dialog; hide from the website or delete. */
 const ManageCourses = () => {
   const { t } = useAdminLang();
   const [courses, setCourses] = useState([]);
-  const [newCourse, setNewCourse] = useState(EMPTY_COURSE);
-  const [loading, setLoading] = useState(false);
-  const [fileInputKey, setFileInputKey] = useState(0);
-  const [editing, setEditing] = useState(null); // course being edited (with an optional new image)
-  const [editError, setEditError] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  const formatPrice = (price) => (Number(price) > 0 ? `$${price}` : t('courses.free'));
+  // Add / edit dialog
+  const [form, setForm] = useState(null); // null = closed
+  const [formError, setFormError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchWithAuth('/api/admin/courses')
-      .then(readJson)
-      .then(data => { if (Array.isArray(data)) setCourses(data); })
-      .catch(err => console.error('Failed to fetch courses', err));
-  }, []);
-
-  const handleImageUpload = (e) => {
-    // Sent to the server (Cloudinary or local storage) together with the course.
-    setNewCourse({...newCourse, image: e.target.files[0] || null});
-  };
-
-  const handleAddCourse = async (e) => {
-    e.preventDefault();
-
-    const courseData = new FormData();
-    courseData.append('title', newCourse.title);
-    courseData.append('level', newCourse.age);
-    courseData.append('description', newCourse.description);
-    courseData.append('price', newCourse.price);
-    courseData.append('icon', '📖'); // Fallback for existing UI
-    if (newCourse.image) {
-      courseData.append('image', newCourse.image);
-    }
-
-    setLoading(true);
+  const load = useCallback(async () => {
     try {
-      const res = await fetchWithAuth('/api/admin/courses', {
-        method: 'POST',
-        body: courseData
-      });
+      const res = await fetchWithAuth('/api/admin/courses');
       const data = await readJson(res);
-      if (res.ok) {
-        setCourses([...courses, data]);
-        setNewCourse(EMPTY_COURSE);
-        setFileInputKey(k => k + 1);
-        alert(t('courses.created'));
-      } else {
-        alert(t.server(data.message) || t('courses.createFailed'));
-      }
+      if (Array.isArray(data)) setCourses(data);
     } catch (err) {
-      console.error(err);
-      alert(t('common.networkError'));
+      console.error('Failed to fetch courses', err);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data from the API on mount
+    load();
+  }, [load]);
+
+  // Pick a new cover image and show a local preview of it.
+  const chooseImage = (file) => {
+    if (form.previewUrl) URL.revokeObjectURL(form.previewUrl);
+    setForm({ ...form, newImage: file || null, previewUrl: file ? URL.createObjectURL(file) : '', removeImage: false });
+  };
+  const clearImage = () => {
+    if (form.previewUrl) URL.revokeObjectURL(form.previewUrl);
+    setForm({ ...form, newImage: null, previewUrl: '', removeImage: true });
   };
 
-  const openEdit = (course) => {
-    setEditError('');
-    setEditing({ ...course, newImage: null, removeImage: false });
+  const flash = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
   };
 
-  const handleSaveEdit = async (e) => {
+  const openAdd = () => { setFormError(''); setForm({ ...EMPTY_FORM }); };
+  const openEdit = (course) => { setFormError(''); setForm({ ...EMPTY_FORM, ...course, price: String(course.price ?? '') }); };
+  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    const form = new FormData();
-    form.append('title', editing.title);
-    form.append('level', editing.level);
-    form.append('description', editing.description);
-    form.append('price', editing.price);
-    if (editing.newImage) form.append('image', editing.newImage);
-    else if (editing.removeImage) form.append('removeImage', 'true');
+    const data = new FormData();
+    data.append('title', form.title);
+    data.append('level', form.level);
+    data.append('description', form.description);
+    data.append('price', form.price);
+    if (!form._id) data.append('icon', '📖');
+    if (form.newImage) data.append('image', form.newImage);
+    else if (form._id && form.removeImage) data.append('removeImage', 'true');
 
-    setSavingEdit(true);
-    setEditError('');
+    setSaving(true);
+    setFormError('');
     try {
-      const res = await fetchWithAuth(`/api/admin/courses/${editing._id}`, { method: 'PUT', body: form });
-      const data = await readJson(res);
-      if (res.ok) {
-        setCourses(courses.map(c => (c._id === data._id ? data : c)));
-        setEditing(null);
-      } else {
-        setEditError(t.server(data.message) || t('courses.updateFailed'));
-      }
-    } catch {
-      setEditError(t('common.networkError'));
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleDeleteCourse = async (id) => {
-    if (!window.confirm(t('courses.confirmDelete'))) return;
-    try {
-      const res = await fetchWithAuth(`/api/admin/courses/${id}`, {
-        method: 'DELETE'
+      const res = await fetchWithAuth(form._id ? `/api/admin/courses/${form._id}` : '/api/admin/courses', {
+        method: form._id ? 'PUT' : 'POST',
+        body: data,
       });
-      if (res.ok) {
-        setCourses(courses.filter(c => c._id !== id));
-      } else {
-        alert(t('courses.deleteFailed'));
-      }
-    } catch (err) {
-      console.error(err);
-      alert(t('common.networkError'));
+      const body = await readJson(res);
+      if (!res.ok) { setFormError(t.server(body.message) || t(form._id ? 'courses.updateFailed' : 'courses.createFailed')); return; }
+      flash('success', t(form._id ? 'courses.updated' : 'courses.created'));
+      setForm(null);
+      load();
+    } catch {
+      setFormError(t('common.networkError'));
+    } finally {
+      setSaving(false);
     }
   };
+
+  const togglePublished = async (course) => {
+    try {
+      const data = new FormData();
+      data.append('published', String(!(course.published !== false)));
+      const res = await fetchWithAuth(`/api/admin/courses/${course._id}`, { method: 'PUT', body: data });
+      if (!res.ok) throw new Error();
+      flash('success', t((course.published !== false) ? 'courses.hidden' : 'courses.shown', { title: course.title }));
+      load();
+    } catch {
+      flash('error', t('courses.updateFailed'));
+    }
+  };
+
+  const handleDelete = async (course) => {
+    if (!window.confirm(t('courses.confirmDeleteNamed', { title: course.title }))) return;
+    try {
+      const res = await fetchWithAuth(`/api/admin/courses/${course._id}`, { method: 'DELETE' });
+      const body = await readJson(res);
+      if (!res.ok) { flash('error', t.server(body.message) || t('courses.deleteFailed')); return; }
+      flash('success', t('courses.deleted'));
+      setCourses(prev => prev.filter(c => c._id !== course._id));
+    } catch {
+      flash('error', t('common.networkError'));
+    }
+  };
+
+  const totals = courses.reduce((acc, c) => ({
+    published: acc.published + (c.published !== false ? 1 : 0),
+    students: acc.students + (c.stats?.students || 0),
+    revenue: acc.revenue + (c.stats?.revenue || 0),
+  }), { published: 0, students: 0, revenue: 0 });
+  const formatPrice = (price) => (Number(price) > 0 ? money(price) : t('courses.free'));
+  const currentImage = form && (form.previewUrl || (!form.removeImage && form.imageUrl));
 
   return (
-    <div>
-      <div className="admin-header">
-        <h2>{t('courses.title')}</h2>
+    <div className="ov-page">
+      <header className="welcome-hero">
+        <div>
+          <h1>{t('courses.title')}</h1>
+          <p className="page-sub">{t('courses.subtitle')}</p>
+        </div>
+        <button type="button" className="sched-btn sched-btn-primary" onClick={openAdd}>➕ {t('courses.addTitle')}</button>
+      </header>
+
+      {/* Summary */}
+      <div className="crs-summary">
+        <span>📚 {t('courses.sum.total', { count: courses.length })}</span>
+        <span>🌐 {t('courses.sum.published', { count: totals.published })}</span>
+        <span>👥 {t('courses.sum.students', { count: totals.students })}</span>
+        <span>💰 {t('courses.sum.revenue', { amount: money(totals.revenue) })}</span>
       </div>
 
-      <div className="admin-table-container" style={{ padding: '2rem', marginBottom: '2rem' }}>
-        <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)', textShadow: '0 0 10px rgba(250,204,21,0.3)' }}>{t('courses.addTitle')}</h3>
-        <form onSubmit={handleAddCourse} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1.5rem' }}>
-          <div className="form-group">
-            <label className="form-label">{t('courses.courseTitle')}</label>
-            <input type="text" className="form-control" value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} required />
-          </div>
-          <div className="form-group">
-            <label className="form-label">{t('courses.ageGroup')}</label>
-            <input type="text" className="form-control" placeholder={t('courses.agePlaceholder')} value={newCourse.age} onChange={e => setNewCourse({...newCourse, age: e.target.value})} required />
-          </div>
+      {message.text && <div className={`crs-flash ${message.type}`}>{message.text}</div>}
 
-          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-            <label className="form-label">{t('courses.description')}</label>
-            <textarea className="form-control" rows="3" placeholder={t('courses.descriptionPlaceholder')} value={newCourse.description} onChange={e => setNewCourse({...newCourse, description: e.target.value})} required></textarea>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">{t('courses.price')}</label>
-            <input type="number" min="0" step="0.01" className="form-control" placeholder={t('courses.pricePlaceholder')} value={newCourse.price} onChange={e => setNewCourse({...newCourse, price: e.target.value})} required />
-          </div>
-
-          {/* Image Upload Button (Glassmorphic) */}
-          <div className="form-group">
-            <label className="form-label">{t('courses.image')}</label>
-            <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block', width: '100%' }}>
-              <button type="button" className="btn btn-outline" style={{ width: '100%', padding: '0.8rem', borderStyle: 'dashed', borderColor: 'var(--accent-color)' }}>
-                 {newCourse.image ? t('courses.imageSelected') : t('courses.imageUpload')}
-              </button>
-              <input key={fileInputKey} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
-            </div>
-          </div>
-
-          <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
-            <button type="submit" disabled={loading} className="btn btn-accent" style={{ width: '100%', fontSize: '1.2rem', padding: '1rem', textShadow: '0 0 10px rgba(56,189,248,0.5)' }}>
-              {loading ? t('courses.creating') : t('courses.create')}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="admin-table-container" style={{ overflowX: 'auto' }}>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>{t('courses.col.icon')}</th>
-              <th>{t('courses.col.title')}</th>
-              <th>{t('courses.col.age')}</th>
-              <th>{t('courses.col.price')}</th>
-              <th>{t('common.actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {courses.map(course => (
-              <tr key={course._id}>
-                <td style={{ fontSize: '1.5rem' }}>
-                  {course.imageUrl
-                    ? <img src={course.imageUrl} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '0.5rem' }} />
-                    : course.icon}
-                </td>
-                <td style={{ fontWeight: '600' }}>{course.title}</td>
-                <td>{course.level}</td>
-                <td><span style={{ backgroundColor: 'var(--bg-secondary)', padding: '0.2rem 0.8rem', borderRadius: '1rem', fontSize: '0.9rem' }}>{formatPrice(course.price)}</span></td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  <button onClick={() => openEdit(course)} style={{ backgroundColor: 'transparent', color: 'var(--primary-color)', border: '1px solid var(--primary-color)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontFamily: 'inherit', marginInlineEnd: '0.5rem' }}>{t('common.edit')}</button>
-                  <button onClick={() => handleDeleteCourse(course._id)} style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontFamily: 'inherit' }}>{t('common.delete')}</button>
-                </td>
-              </tr>
-            ))}
-            {courses.length === 0 && (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>{t('courses.empty')}</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {editing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '1rem' }}>
-          <div style={{ background: 'var(--card-bg)', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(250, 204, 21, 0.2)', position: 'relative' }}>
-            <button onClick={() => setEditing(null)} aria-label="Close" style={{ position: 'absolute', top: '1.2rem', insetInlineEnd: '1.2rem', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.4rem', cursor: 'pointer' }}>✕</button>
-            <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-color)', marginBottom: '1.5rem', fontSize: '1.8rem' }}>{t('courses.editTitle')}</h2>
-            <form onSubmit={handleSaveEdit}>
-              {editError && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{editError}</p>}
-              <div className="form-group">
-                <label className="form-label">{t('courses.courseTitle')}</label>
-                <input required type="text" className="form-control" value={editing.title} onChange={e => setEditing({ ...editing, title: e.target.value })} />
+      {loading ? (
+        <p className="ov-empty">{t('courses.loading')}</p>
+      ) : courses.length === 0 ? (
+        <div className="crs-empty">
+          <p>{t('courses.empty')}</p>
+          <button type="button" className="sched-btn sched-btn-primary" onClick={openAdd}>➕ {t('courses.addTitle')}</button>
+        </div>
+      ) : (
+        <div className="crs-grid">
+          {courses.map(course => (
+            <article key={course._id} className={`crs-card ${(course.published !== false) ? '' : 'hidden-course'}`}>
+              <div className="crs-cover">
+                {course.imageUrl ? <img src={course.imageUrl} alt="" /> : <span aria-hidden="true">{course.icon || '📖'}</span>}
+                <span className={`crs-status ${(course.published !== false) ? 'on' : 'off'}`}>{(course.published !== false) ? t('courses.status.published') : t('courses.status.hidden')}</span>
+                <span className="crs-price">{formatPrice(course.price)}</span>
               </div>
-              <div className="form-group">
-                <label className="form-label">{t('courses.ageGroup')}</label>
-                <input required type="text" className="form-control" value={editing.level} onChange={e => setEditing({ ...editing, level: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('courses.description')}</label>
-                <textarea required rows="4" className="form-control" value={editing.description} onChange={e => setEditing({ ...editing, description: e.target.value })}></textarea>
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('courses.price')}</label>
-                <input required type="number" min="0" step="0.01" className="form-control" value={editing.price} onChange={e => setEditing({ ...editing, price: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('courses.image')}</label>
-                {editing.imageUrl && !editing.newImage && !editing.removeImage && (
-                  <img src={editing.imageUrl} alt="" style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '0.75rem', marginBottom: '0.75rem' }} />
-                )}
-                <div style={{ position: 'relative', overflow: 'hidden', width: '100%' }}>
-                  <button type="button" className="btn btn-outline" style={{ width: '100%', padding: '0.7rem', borderStyle: 'dashed', borderColor: 'var(--accent-color)' }}>
-                    {editing.newImage ? t('courses.imageSelected') : t('courses.newImage')}
-                  </button>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setEditing({ ...editing, newImage: e.target.files[0] || null, removeImage: false })} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+              <div className="crs-body">
+                <h3>{course.title}</h3>
+                <span className="crs-level">👤 {course.level}</span>
+                <p className="crs-desc">{course.description}</p>
+                <div className="crs-stats">
+                  <div><strong>{course.stats?.students || 0}</strong><span>{t('courses.stat.students')}</span></div>
+                  <div><strong>{course.stats?.active || 0}</strong><span>{t('courses.stat.active')}</span></div>
+                  <div><strong>{money(course.stats?.revenue)}</strong><span>{t('courses.stat.revenue')}</span></div>
                 </div>
-                {editing.imageUrl && !editing.newImage && (
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.6rem', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                    <input type="checkbox" checked={editing.removeImage} onChange={e => setEditing({ ...editing, removeImage: e.target.checked })} />
-                    {t('courses.removeImage')}
+              </div>
+              <div className="crs-actions">
+                <button type="button" className="sched-btn sched-btn-ghost" onClick={() => openEdit(course)}>✏️ {t('common.edit')}</button>
+                <button type="button" className="sched-btn sched-btn-ghost" onClick={() => togglePublished(course)}>
+                  {(course.published !== false) ? `🙈 ${t('courses.hide')}` : `👁️ ${t('courses.show')}`}
+                </button>
+                <span style={{ flex: 1 }} />
+                <button type="button" className="ov-icon-btn danger" onClick={() => handleDelete(course)} title={t('common.delete')} aria-label={t('common.delete')}>🗑</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {/* Add / edit dialog */}
+      {form && (
+        <div className="sched-overlay" onClick={e => { if (e.target === e.currentTarget) setForm(null); }}>
+          <form className="sched-modal" style={{ maxWidth: '760px' }} onSubmit={handleSave} role="dialog" aria-modal="true" aria-labelledby="crs-form-title">
+            <div className="sched-header">
+              <div className="sched-header-icon" aria-hidden="true">📚</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 id="crs-form-title">{form._id ? t('courses.editTitle') : t('courses.addTitle')}</h2>
+                <p>{form._id ? form.title : t('courses.addHint')}</p>
+              </div>
+              <button type="button" className="sched-close" onClick={() => setForm(null)} aria-label={t('common.cancel')}>✕</button>
+            </div>
+
+            <div className="sched-body">
+              <div className="crs-form">
+                <div className="crs-form-fields">
+                  <div className="acc-field">
+                    <label htmlFor="crs-title">{t('courses.courseTitle')}</label>
+                    <input id="crs-title" required maxLength={150} className="form-control" value={form.title} onChange={update('title')} placeholder={t('courses.titlePlaceholder')} />
+                  </div>
+                  <div className="acc-row">
+                    <div className="acc-field">
+                      <label htmlFor="crs-level">{t('courses.ageGroup')}</label>
+                      <input id="crs-level" required maxLength={100} className="form-control" value={form.level} onChange={update('level')} placeholder={t('courses.agePlaceholder')} />
+                    </div>
+                    <div className="acc-field">
+                      <label htmlFor="crs-price">{t('courses.price')}</label>
+                      <input id="crs-price" required type="number" min="0" step="0.01" dir="ltr" className="form-control" value={form.price} onChange={update('price')} placeholder={t('courses.pricePlaceholder')} />
+                      <small className="acc-hint">{t('courses.freeHint')}</small>
+                    </div>
+                  </div>
+                  <div className="acc-field">
+                    <label htmlFor="crs-desc">{t('courses.description')}</label>
+                    <textarea id="crs-desc" required rows={4} maxLength={2000} className="form-control" value={form.description} onChange={update('description')} placeholder={t('courses.descriptionPlaceholder')} style={{ resize: 'vertical' }} />
+                  </div>
+                </div>
+
+                <div className="acc-field crs-image-field">
+                  <label>{t('courses.image')}</label>
+                  <label className={`crs-drop ${currentImage ? 'has-image' : ''}`}>
+                    {currentImage ? <img src={currentImage} alt="" /> : (
+                      <span className="crs-drop-empty">🖼️<br />{t('courses.imageUpload')}<small>{t('courses.imageHint')}</small></span>
+                    )}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { chooseImage(e.target.files[0]); e.target.value = ''; }} />
                   </label>
-                )}
+                  {currentImage && (
+                    <button type="button" className="sched-btn sched-btn-danger" onClick={clearImage}>{t('courses.removeImage')}</button>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                <button type="submit" disabled={savingEdit} className="btn btn-accent" style={{ flex: 1 }}>{savingEdit ? t('courses.saving') : t('common.save')}</button>
-                <button type="button" onClick={() => setEditing(null)} className="btn btn-outline" style={{ flex: 1 }}>{t('common.cancel')}</button>
-              </div>
-            </form>
-          </div>
+
+              {formError && <p className="sched-error">{formError}</p>}
+            </div>
+
+            <div className="sched-footer">
+              <span style={{ flex: 1 }} />
+              <button type="button" onClick={() => setForm(null)} className="sched-btn sched-btn-ghost">{t('common.cancel')}</button>
+              <button type="submit" disabled={saving} className="sched-btn sched-btn-primary">
+                {saving ? t('courses.saving') : form._id ? t('common.save') : t('courses.create')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

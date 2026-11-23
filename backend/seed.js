@@ -43,24 +43,18 @@ const dummyInstructors = [
     {
         name: "Sheikh Abdullah Al-Masri",
         rank: "Senior Qari",
-        schedule: "Mon, Wed, Fri (18:00 - 21:00)",
-        attendance: 98,
         salary: "$1,500",
         gender: "male"
     },
     {
         name: "Ustadha Fatima Zahra",
         rank: "Tajweed Specialist",
-        schedule: "Tue, Thu (10:00 - 14:00)",
-        attendance: 100,
         salary: "$1,200",
         gender: "female"
     },
     {
         name: "Sheikh Omar Al-Faruq",
         rank: "Hifz Master",
-        schedule: "Weekends (08:00 - 12:00)",
-        attendance: 95,
         salary: "$1,800",
         gender: "male"
     }

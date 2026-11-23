@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchWithAuth, readJson } from '../../utils/api';
 import { useAdminLang } from '../../i18n/lang';
+import { WEEK_ORDER, dayName, formatSchedule } from '../../utils/schedule';
+import { instructorImage } from '../../utils/instructorProfile';
 
-const EMPTY_INSTRUCTOR = { name: '', email: '', password: '', gender: 'male', rank: '', schedule: '', attendance: 100, salary: '' };
+const EMPTY_FORM = { _id: null, name: '', gender: 'male', rank: '', salary: '', email: '', password: '', hasLogin: false };
+
+// Attendance rate (%) from present/absent counts, or null when nothing is recorded.
+const rateOf = (present, absent) => (present + absent ? Math.round((present / (present + absent)) * 100) : null);
+const rateColor = (rate) => (rate === null ? '#64748b' : rate >= 80 ? '#059669' : rate >= 50 ? '#d97706' : '#dc2626');
 
 // Quote a CSV cell and neutralise spreadsheet formulas (=, +, -, @).
 const csvCell = (value) => {
@@ -11,24 +18,15 @@ const csvCell = (value) => {
   return `"${text.replace(/"/g, '""')}"`;
 };
 
-const overlayStyle = { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 };
-const modalStyle = { background: 'var(--card-bg)', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', padding: '3rem', borderRadius: '2rem', border: '1px solid rgba(250, 204, 21, 0.2)', position: 'relative' };
-const closeStyle = { position: 'absolute', top: '1.5rem', insetInlineEnd: '1.5rem', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer' };
-const thStyle = { padding: '1.5rem 1rem', color: 'var(--text-muted)' };
-
+/** Admin: instructors as cards with their real numbers; add / edit (incl. login) in one dialog. */
 const ManageInstructors = () => {
-  const { t } = useAdminLang();
+  const { t, lang } = useAdminLang();
   const [instructors, setInstructors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [form, setForm] = useState(null); // null = dialog closed
   const [formError, setFormError] = useState('');
-
-  // Modals state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Form State
-  const [newInstructor, setNewInstructor] = useState(EMPTY_INSTRUCTOR);
-  const [editingInstructor, setEditingInstructor] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const fetchInstructors = useCallback(async () => {
     try {
@@ -47,14 +45,22 @@ const ManageInstructors = () => {
     fetchInstructors();
   }, [fetchInstructors]);
 
+  const flash = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+  };
+
   const handleDownloadReport = () => {
     const headers = ['id', 'name', 'email', 'rank', 'schedule', 'attendance', 'salary'].map(k => csvCell(t(`instructors.csv.${k}`)));
-    const rows = instructors.map(inst => [
-      inst._id, csvCell(inst.name), csvCell(inst.email), csvCell(inst.rank), csvCell(inst.schedule), inst.attendance ?? 100, csvCell(inst.salary)
-    ]);
+    const rows = instructors.map(inst => {
+      const s = inst.attendanceStats || {};
+      const rate = rateOf(s.present || 0, s.absent || 0);
+      const schedule = (inst.students || []).map(c => `${c.student}: ${formatSchedule({ scheduleDays: c.days, scheduleClock: c.clock, scheduleTime: c.text }, lang) || '-'}`).join(' | ');
+      return [inst._id, csvCell(inst.name), csvCell(inst.email), csvCell(inst.rank), csvCell(schedule), rate === null ? '' : `${rate}%`, csvCell(inst.salary)];
+    });
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     // The BOM makes Excel open Arabic text correctly.
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -65,181 +71,214 @@ const ManageInstructors = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
+  const openAdd = () => { setFormError(''); setForm({ ...EMPTY_FORM }); };
+  const openEdit = (inst) => {
     setFormError('');
+    setForm({ ...EMPTY_FORM, _id: inst._id, name: inst.name, gender: inst.gender || 'male', rank: inst.rank, salary: inst.salary, email: inst.email || '', hasLogin: Boolean(inst.email) });
+  };
+  const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setFormError('');
+    const { _id, name, gender, rank, salary, email, password } = form;
+    const body = { name, gender, rank, salary };
+    if (!_id || email.trim()) body.email = email;
+    if (!_id || password) body.password = password;
     try {
-      const res = await fetchWithAuth('/api/admin/instructors', {
-        method: 'POST',
-        body: JSON.stringify(newInstructor)
+      const res = await fetchWithAuth(_id ? `/api/admin/instructors/${_id}` : '/api/admin/instructors', {
+        method: _id ? 'PUT' : 'POST',
+        body: JSON.stringify(body),
       });
       const data = await readJson(res);
-      if (!res.ok) {
-        setFormError(t.server(data.message) || t('instructors.addFailed'));
-        return;
-      }
-      setIsModalOpen(false);
-      setNewInstructor(EMPTY_INSTRUCTOR);
+      if (!res.ok) { setFormError(t.server(data.message) || t(_id ? 'instructors.updateFailed' : 'instructors.addFailed')); return; }
+      flash('success', t(_id ? 'instructors.updated' : 'instructors.added', { name }));
+      setForm(null);
       fetchInstructors();
-    } catch (err) {
-      console.error('Failed to add instructor:', err);
+    } catch {
       setFormError(t('common.networkError'));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const openEditModal = (inst) => {
-    setFormError('');
-    setEditingInstructor(inst);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
+  const handleDelete = async (inst) => {
+    const count = inst.students?.length || 0;
+    const question = count ? t('instructors.confirmDeleteStudents', { name: inst.name, count }) : t('instructors.confirmDeleteNamed', { name: inst.name });
+    if (!window.confirm(question)) return;
     try {
-      const { name, rank, schedule, salary, attendance, gender } = editingInstructor;
-      const res = await fetchWithAuth(`/api/admin/instructors/${editingInstructor._id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ name, rank, schedule, salary, attendance, gender: gender || 'male' })
-      });
-      const data = await readJson(res);
-      if (!res.ok) {
-        setFormError(t.server(data.message) || t('instructors.updateFailed'));
-        return;
-      }
-      setIsEditModalOpen(false);
-      setEditingInstructor(null);
+      const res = await fetchWithAuth(`/api/admin/instructors/${inst._id}`, { method: 'DELETE' });
+      if (!res.ok) { flash('error', t.server((await readJson(res)).message) || t('instructors.deleteFailed')); return; }
+      flash('success', t('instructors.deleted', { name: inst.name }));
       fetchInstructors();
-    } catch (err) {
-      console.error('Failed to update instructor:', err);
-      setFormError(t('common.networkError'));
+    } catch {
+      flash('error', t('common.networkError'));
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm(t('instructors.confirmDelete'))) return;
-    try {
-      const res = await fetchWithAuth(`/api/admin/instructors/${id}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) alert(t.server((await readJson(res)).message) || t('instructors.deleteFailed'));
-      fetchInstructors();
-    } catch (err) {
-      console.error('Failed to delete instructor:', err);
-    }
-  };
+  const totals = instructors.reduce((acc, i) => {
+    const s = i.attendanceStats || {};
+    return {
+      students: acc.students + (i.students?.length || 0),
+      weekly: acc.weekly + (i.weeklyClasses || 0),
+      present: acc.present + (s.present || 0),
+      absent: acc.absent + (s.absent || 0),
+      noLogin: acc.noLogin + (i.email ? 0 : 1),
+    };
+  }, { students: 0, weekly: 0, present: 0, absent: 0, noLogin: 0 });
+  const overallRate = rateOf(totals.present, totals.absent);
 
   return (
-    <div className="manage-instructors-page" style={{ padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', color: 'var(--primary-color)', fontFamily: 'var(--font-heading)' }}>
-          {t('instructors.title')}
-        </h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={() => { setFormError(''); setIsModalOpen(true); }} className="btn btn-outline" style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}>
-            {t('instructors.add')}
-          </button>
-          <button onClick={handleDownloadReport} className="btn btn-accent">
-            {t('instructors.report')}
-          </button>
+    <div className="ov-page">
+      <header className="welcome-hero">
+        <div>
+          <h1>{t('instructors.title')}</h1>
+          <p className="page-sub">{t('instructors.subtitle')}</p>
         </div>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="sched-btn sched-btn-ghost" onClick={handleDownloadReport} disabled={!instructors.length}>⬇️ {t('instructors.export')}</button>
+          <button type="button" className="sched-btn sched-btn-primary" onClick={openAdd}>➕ {t('instructors.addShort')}</button>
+        </div>
+      </header>
+
+      <div className="crs-summary">
+        <span>🎓 {t('instructors.sum.total', { count: instructors.length })}</span>
+        <span>👥 {t('instructors.sum.students', { count: totals.students })}</span>
+        <span>🕒 {t('instructors.sum.weekly', { count: totals.weekly })}</span>
+        <span>📋 {t('instructors.sum.attendance', { rate: overallRate === null ? '—' : `${overallRate}%` })}</span>
+        {totals.noLogin > 0 && <span className="warn">⚠️ {t('instructors.sum.noLogin', { count: totals.noLogin })}</span>}
       </div>
 
-      <div className="table-container" style={{ background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', border: '1px solid rgba(0,0,0,0.05)', overflowX: 'auto' }}>
-        {loading ? (
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>{t('instructors.loading')}</p>
-        ) : (
-          <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid rgba(250, 204, 21, 0.3)' }}>
-                <th style={thStyle}>{t('instructors.col.name')}</th>
-                <th style={thStyle}>{t('instructors.col.rank')}</th>
-                <th style={thStyle}>{t('instructors.col.schedule')}</th>
-                <th style={thStyle}>{t('instructors.col.attendance')}</th>
-                <th style={thStyle}>{t('instructors.col.salary')}</th>
-                <th style={{ ...thStyle, textAlign: 'end' }}>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {instructors.map((inst) => (
-                <tr key={inst._id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                  <td style={{ padding: '1.5rem 1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>
-                    {inst.name}
-                    <div style={{ fontWeight: 'normal', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                      {inst.email ? <bdi>{inst.email}</bdi> : t('instructors.noLogin')}
-                    </div>
-                  </td>
-                  <td style={{ padding: '1.5rem 1rem' }}>
-                    <span style={{ background: 'rgba(3, 105, 161, 0.2)', color: 'var(--accent-color)', padding: '0.4rem 0.8rem', borderRadius: '1rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                      {inst.rank || t('common.na')}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1.5rem 1rem', color: 'var(--text-muted)' }}>{inst.schedule || t('common.tbd')}</td>
-                  <td style={{ padding: '1.5rem 1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ width: '100px', height: '6px', background: 'rgba(0,0,0,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${inst.attendance ?? 100}%`, height: '100%', background: (inst.attendance ?? 100) >= 95 ? 'var(--primary-color)' : 'var(--accent-color)' }}></div>
-                      </div>
-                      <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{inst.attendance ?? 100}%</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '1.5rem 1rem', color: 'var(--primary-color)', fontWeight: 'bold' }}><bdi>{inst.salary || t('common.tbd')}</bdi></td>
-                  <td style={{ padding: '1.5rem 1rem', textAlign: 'end', whiteSpace: 'nowrap' }}>
-                    <button onClick={() => openEditModal(inst)} style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', marginInlineEnd: '1rem', fontWeight: 'bold', fontFamily: 'inherit' }}>{t('common.edit')}</button>
-                    <button onClick={() => handleDelete(inst._id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'inherit' }}>{t('common.delete')}</button>
-                  </td>
-                </tr>
-              ))}
-              {instructors.length === 0 && (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>{t('instructors.empty')}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {message.text && <div className={`crs-flash ${message.type}`}>{message.text}</div>}
 
-      {/* Add Instructor Modal */}
-      {isModalOpen && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setIsModalOpen(false)} style={closeStyle}>✕</button>
-            <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-color)', marginBottom: '2rem', fontSize: '2rem' }}>{t('instructors.addTitle')}</h2>
-            <form onSubmit={handleAddSubmit}>
-              {formError && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{formError}</p>}
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.fullName')}</label><input required type="text" className="form-control" value={newInstructor.name} onChange={e => setNewInstructor({...newInstructor, name: e.target.value})} placeholder={t('instructors.namePlaceholder')} /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.gender')}</label><select className="form-control" value={newInstructor.gender} onChange={e => setNewInstructor({...newInstructor, gender: e.target.value})}><option value="male">{t('instructors.gender.male')}</option><option value="female">{t('instructors.gender.female')}</option></select></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.email')}</label><input required type="email" dir="ltr" autoComplete="off" className="form-control" value={newInstructor.email} onChange={e => setNewInstructor({...newInstructor, email: e.target.value})} placeholder="teacher@example.com" /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.password')}</label><input required type="password" minLength={8} autoComplete="new-password" className="form-control" value={newInstructor.password} onChange={e => setNewInstructor({...newInstructor, password: e.target.value})} placeholder={t('instructors.passwordPlaceholder')} /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.rank')}</label><input required type="text" className="form-control" value={newInstructor.rank} onChange={e => setNewInstructor({...newInstructor, rank: e.target.value})} placeholder={t('instructors.rankPlaceholder')} /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.schedule')}</label><input required type="text" className="form-control" value={newInstructor.schedule} onChange={e => setNewInstructor({...newInstructor, schedule: e.target.value})} placeholder={t('instructors.schedulePlaceholder')} /></div>
-              <div style={{ marginBottom: '2rem' }}><label className="form-label">{t('instructors.initialSalary')}</label><input required type="text" className="form-control" value={newInstructor.salary} onChange={e => setNewInstructor({...newInstructor, salary: e.target.value})} placeholder={t('instructors.salaryPlaceholder')} /></div>
-              <button type="submit" className="btn btn-accent" style={{ width: '100%', padding: '1rem' }}>{t('instructors.confirmAdd')}</button>
-            </form>
-          </div>
+      {loading ? (
+        <p className="ov-empty">{t('instructors.loading')}</p>
+      ) : instructors.length === 0 ? (
+        <div className="crs-empty">
+          <p>{t('instructors.empty')}</p>
+          <button type="button" className="sched-btn sched-btn-primary" onClick={openAdd}>➕ {t('instructors.addShort')}</button>
+        </div>
+      ) : (
+        <div className="crs-grid">
+          {instructors.map(inst => {
+            const stats = inst.attendanceStats || { present: 0, absent: 0 };
+            const rate = rateOf(stats.present, stats.absent);
+            const classes = inst.students || [];
+            const days = WEEK_ORDER.filter(d => classes.some(c => c.days.includes(d)));
+            return (
+              <article key={inst._id} className="ins-card">
+                <div className="ins-head">
+                  <img src={instructorImage(inst)} alt="" className={inst.photoUrl ? '' : 'default'} />
+                  <div style={{ minWidth: 0 }}>
+                    <h3>{inst.name}</h3>
+                    <span className="crs-level">{inst.rank || t('common.na')}</span>
+                    <div className={`ins-login ${inst.email ? '' : 'none'}`}>
+                      {inst.email ? <>✉️ <bdi>{inst.email}</bdi></> : <>⚠️ {t('instructors.noLogin')}</>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="crs-stats">
+                  <div><strong>{classes.length}</strong><span>{t('instructors.stat.students')}</span></div>
+                  <div><strong>{inst.weeklyClasses || 0}</strong><span>{t('instructors.stat.weekly')}</span></div>
+                  <div><strong style={{ color: rateColor(rate) }}>{rate === null ? '—' : `${rate}%`}</strong><span>{t('instructors.stat.attendance')}</span></div>
+                </div>
+
+                <div className="ins-meta">
+                  <div>
+                    <span>{t('instructors.days')}</span>
+                    {days.length
+                      ? <div className="ins-days">{days.map(d => <span key={d} className="inst-day">{dayName(d, lang)}</span>)}</div>
+                      : <em>{t('instructors.noDays')}</em>}
+                  </div>
+                  <div>
+                    <span>{t('instructors.col.salary')}</span>
+                    <strong><bdi>{inst.salary || t('common.tbd')}</bdi></strong>
+                  </div>
+                </div>
+
+                <div className="crs-actions">
+                  <Link to={`/admin/instructors/${inst._id}`} className="sched-btn sched-btn-primary ins-follow">📊 {t('instructors.follow')}</Link>
+                  <button type="button" className="sched-btn sched-btn-ghost" onClick={() => openEdit(inst)}>✏️ {t('common.edit')}</button>
+                  <span style={{ flex: 1 }} />
+                  <button type="button" className="ov-icon-btn danger" onClick={() => handleDelete(inst)} title={t('common.delete')} aria-label={t('common.delete')}>🗑</button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 
-      {/* Edit Instructor Modal */}
-      {isEditModalOpen && editingInstructor && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setIsEditModalOpen(false)} style={closeStyle}>✕</button>
-            <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-color)', marginBottom: '2rem', fontSize: '2rem' }}>{t('instructors.editTitle')}</h2>
-            <form onSubmit={handleEditSubmit}>
-              {formError && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{formError}</p>}
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.fullName')}</label><input required type="text" className="form-control" value={editingInstructor.name} onChange={e => setEditingInstructor({...editingInstructor, name: e.target.value})} /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.gender')}</label><select className="form-control" value={editingInstructor.gender || 'male'} onChange={e => setEditingInstructor({...editingInstructor, gender: e.target.value})}><option value="male">{t('instructors.gender.male')}</option><option value="female">{t('instructors.gender.female')}</option></select></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.rank')}</label><input required type="text" className="form-control" value={editingInstructor.rank} onChange={e => setEditingInstructor({...editingInstructor, rank: e.target.value})} /></div>
-              <div style={{ marginBottom: '1.5rem' }}><label className="form-label">{t('instructors.schedule')}</label><input required type="text" className="form-control" value={editingInstructor.schedule} onChange={e => setEditingInstructor({...editingInstructor, schedule: e.target.value})} /></div>
-              <div style={{ marginBottom: '2rem' }}><label className="form-label">{t('instructors.salary')}</label><input required type="text" className="form-control" value={editingInstructor.salary} onChange={e => setEditingInstructor({...editingInstructor, salary: e.target.value})} /></div>
-              <button type="submit" className="btn btn-accent" style={{ width: '100%', padding: '1rem' }}>{t('common.save')}</button>
-            </form>
-          </div>
+      {/* Add / edit dialog */}
+      {form && (
+        <div className="sched-overlay" onClick={e => { if (e.target === e.currentTarget) setForm(null); }}>
+          <form className="sched-modal" style={{ maxWidth: '680px' }} onSubmit={handleSave} role="dialog" aria-modal="true" aria-labelledby="ins-form-title">
+            <div className="sched-header">
+              <div className="sched-header-icon" aria-hidden="true">🎓</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 id="ins-form-title">{form._id ? t('instructors.editTitle') : t('instructors.addTitle')}</h2>
+                <p>{form._id ? form.name : t('instructors.addHint')}</p>
+              </div>
+              <button type="button" className="sched-close" onClick={() => setForm(null)} aria-label={t('common.cancel')}>✕</button>
+            </div>
+
+            <div className="sched-body">
+              <h4 className="ins-form-section">👤 {t('instructors.section.profile')}</h4>
+              <div className="acc-form">
+                <div className="acc-row">
+                  <div className="acc-field">
+                    <label htmlFor="ins-name">{t('instructors.fullName')}</label>
+                    <input id="ins-name" required maxLength={100} className="form-control" value={form.name} onChange={update('name')} placeholder={t('instructors.namePlaceholder')} />
+                  </div>
+                  <div className="acc-field">
+                    <label htmlFor="ins-gender">{t('instructors.gender')}</label>
+                    <select id="ins-gender" className="form-control" value={form.gender} onChange={update('gender')}>
+                      <option value="male">{t('instructors.gender.male')}</option>
+                      <option value="female">{t('instructors.gender.female')}</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="acc-row">
+                  <div className="acc-field">
+                    <label htmlFor="ins-rank">{t('instructors.rank')}</label>
+                    <input id="ins-rank" required maxLength={100} className="form-control" value={form.rank} onChange={update('rank')} placeholder={t('instructors.rankPlaceholder')} />
+                  </div>
+                  <div className="acc-field">
+                    <label htmlFor="ins-salary">{t('instructors.salary')}</label>
+                    <input id="ins-salary" required maxLength={50} className="form-control" value={form.salary} onChange={update('salary')} placeholder={t('instructors.salaryPlaceholder')} />
+                  </div>
+                </div>
+              </div>
+
+              <h4 className="ins-form-section">🔐 {t('instructors.section.login')}</h4>
+              <p className="acc-hint" style={{ marginTop: '-0.4rem', marginBottom: '0.8rem' }}>
+                {!form._id ? t('instructors.loginHintNew') : form.hasLogin ? t('instructors.loginHintEdit') : t('instructors.loginHintCreate')}
+              </p>
+              <div className="acc-row">
+                <div className="acc-field">
+                  <label htmlFor="ins-email">{t('instructors.email')}</label>
+                  <input id="ins-email" type="email" dir="ltr" autoComplete="off" required={!form._id} className="form-control" value={form.email} onChange={update('email')} placeholder="teacher@example.com" />
+                </div>
+                <div className="acc-field">
+                  <label htmlFor="ins-password">{form._id && form.hasLogin ? t('instructors.newPassword') : t('instructors.password')}</label>
+                  <input id="ins-password" type="password" autoComplete="new-password" minLength={8} required={!form._id} className="form-control" value={form.password} onChange={update('password')} placeholder={form._id && form.hasLogin ? t('instructors.keepPassword') : t('instructors.passwordPlaceholder')} />
+                </div>
+              </div>
+
+              {formError && <p className="sched-error">{formError}</p>}
+            </div>
+
+            <div className="sched-footer">
+              <span style={{ flex: 1 }} />
+              <button type="button" onClick={() => setForm(null)} className="sched-btn sched-btn-ghost">{t('common.cancel')}</button>
+              <button type="submit" disabled={saving} className="sched-btn sched-btn-primary">
+                {saving ? t('instructors.saving') : form._id ? t('common.save') : t('instructors.confirmAdd')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
-
     </div>
   );
 };

@@ -7,7 +7,11 @@ const enrollmentSchema = new mongoose.Schema({
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
     instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'Instructor', required: false },
+    // Free-text class time (set by the admin). Used when no structured schedule is set.
     scheduleTime: { type: String, default: '' },
+    // Structured schedule (set by the instructor): week days 0 = Sunday ... 6 = Saturday, and "HH:MM" (24h).
+    scheduleDays: { type: [{ type: Number, min: 0, max: 6 }], default: [] },
+    scheduleClock: { type: String, default: '', match: /^$|^([01]\d|2[0-3]):[0-5]\d$/ },
     zoomLink: { type: String, default: '' },
     progressPercentage: { type: Number, default: 0, min: 0, max: 100 },
     currentAyahOrLesson: { type: String, default: 'Beginning' },
