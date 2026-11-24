@@ -7,6 +7,16 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // We register the service worker ourselves (src/main.jsx) so a new version reloads the page.
+      injectRegister: false,
+      workbox: {
+        // A new version takes over right away instead of waiting for every tab to close.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        // Never answer API calls from the offline cache.
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       includeAssets: ['favicon.svg', 'pwa-icon.svg', 'og-image.png'],
       manifest: {
         name: 'Tarteel Academy - أكاديمية ترتيل',
