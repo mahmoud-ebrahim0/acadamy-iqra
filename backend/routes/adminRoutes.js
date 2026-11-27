@@ -12,6 +12,9 @@ import { protect, adminOnly } from '../middleware/authMiddleware.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import { upload, fileUrl, discardUpload } from '../config/cloudinary.js';
 import { authResponse } from '../utils/token.js';
+import { notify } from '../utils/notify.js';
+import Consultation, { CONSULTATION_STATUSES } from '../models/Consultation.js';
+import Setting, { SETTING_FIELDS, SOCIAL_FIELDS } from '../models/Setting.js';
 import {
     cleanText,
     isHttpUrl,
@@ -473,6 +476,7 @@ router.put('/payouts/:id', async (req, res) => {
     payout.status = status;
     payout.processedAt = new Date();
     await payout.save();
+    await notify(payout.instructor, status === 'Paid' ? 'payoutPaid' : 'payoutRejected', { amount: payout.amount }, '/instructor?tab=wallet');
     res.json(await Payout.findById(payout._id).populate('instructor', 'name rank'));
 });
 
@@ -572,11 +576,20 @@ router.put('/enrollments/:id', async (req, res) => {
             enrollment.scheduleClock = '';
         }
     }
+    const becamePaid = update.paymentStatus === 'Paid' && enrollment.isModified('paymentStatus');
+    const newInstructor = update.instructor && enrollment.isModified('instructor') ? update.instructor : null;
     // A confirmed payment activates the enrollment.
     if (update.paymentStatus === 'Paid' && enrollment.status === 'Pending') enrollment.status = 'Active';
     await enrollment.save();
 
-    res.json(await populateEnrollment(Enrollment.findById(enrollment._id)));
+    const full = await populateEnrollment(Enrollment.findById(enrollment._id));
+    const data = { student: full.student?.name, course: full.course?.title, instructor: full.instructor?.name };
+    if (becamePaid) await notify(enrollment.student, 'paymentApproved', data, '/dashboard/courses');
+    if (newInstructor) {
+        await notify(enrollment.student, 'instructorAssigned', data, '/dashboard/courses');
+        await notify(newInstructor, 'newStudent', data, '/instructor?tab=students');
+    }
+    res.json(full);
 });
 
 router.delete('/enrollments/:id', async (req, res) => {
@@ -585,6 +598,162 @@ router.delete('/enrollments/:id', async (req, res) => {
     await Attendance.deleteMany({ enrollment: deleted._id });
     await ClassReport.deleteMany({ enrollment: deleted._id });
     res.json({ success: true, message: 'Enrollment deleted successfully.' });
+});
+
+// ---------------------------------------------------------------------------
+// Students (search, edit, suspend)
+// ---------------------------------------------------------------------------
+
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\export default router;');
+const STUDENT_FIELDS = 'name email phone active createdAt';
+
+// All students with their number of courses and payment summary. ?q= searches name / email / phone.
+router.get('/students', async (req, res) => {
+    const q = cleanText(req.query.q, 100);
+    const filter = { role: 'student' };
+    if (q) {
+        const re = new RegExp(escapeRegex(q), 'i');
+        filter.$or = mongoose.trusted([{ name: re }, { email: re }, { phone: re }]);
+    }
+    const [students, rows] = await Promise.all([
+        User.find(filter).select(STUDENT_FIELDS).sort({ createdAt: -1 }).limit(1000).lean(),
+        Enrollment.aggregate([
+            {
+                $group: {
+                    _id: '$student',
+                    courses: { $sum: 1 },
+                    paid: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Paid'] }, 1, 0] } },
+                    pending: { $sum: { $cond: [{ $eq: ['$paymentStatus', 'Pending'] }, 1, 0] } },
+                    whatsapp: { $last: '$whatsapp' },
+                },
+            },
+        ]),
+    ]);
+    const statsBy = new Map(rows.map(({ _id, ...rest }) => [String(_id), rest]));
+    res.json(students.map((s) => {
+        const st = statsBy.get(String(s._id)) || { courses: 0, paid: 0, pending: 0, whatsapp: '' };
+        return { ...s, active: s.active !== false, phone: s.phone || st.whatsapp || '', stats: { courses: st.courses, paid: st.paid, pending: st.pending } };
+    }));
+});
+
+// One student: profile, courses (with instructor and schedule) and attendance totals.
+router.get('/students/:id', async (req, res) => {
+    const student = await User.findOne({ _id: req.params.id, role: 'student' }).select(STUDENT_FIELDS).lean();
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found.' });
+    const enrollments = await Enrollment.find({ student: student._id })
+        .populate('course', 'title')
+        .populate('instructor', 'name')
+        .select('course instructor paymentStatus paymentMethod status enrolledAt scheduleDays scheduleClock scheduleTime whatsapp studentAge level')
+        .sort({ enrolledAt: -1 })
+        .lean();
+    const attendance = await Attendance.aggregate([
+        { $match: { enrollment: { $in: enrollments.map((e) => e._id) } } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]);
+    const att = Object.fromEntries(attendance.map((a) => [a._id, a.count]));
+    res.json({
+        ...student,
+        active: student.active !== false,
+        phone: student.phone || enrollments.find((e) => e.whatsapp)?.whatsapp || '',
+        enrollments,
+        attendance: { present: att.Present || 0, absent: att.Absent || 0 },
+    });
+});
+
+// Edit name / email / phone, suspend or re-activate, or set a new password.
+router.put('/students/:id', async (req, res) => {
+    const student = await User.findOne({ _id: req.params.id, role: 'student' });
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found.' });
+    const body = req.body || {};
+
+    if (body.name !== undefined) {
+        const name = cleanText(body.name, 100);
+        if (!name) return res.status(400).json({ success: false, message: 'Please enter the name.' });
+        student.name = name;
+    }
+    if (body.email !== undefined) {
+        const email = normalizeEmail(body.email);
+        if (!isValidEmail(email)) return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+        if (email !== student.email && (await User.exists({ email }))) {
+            return res.status(409).json({ success: false, message: 'This email is already used by another account.' });
+        }
+        student.email = email;
+    }
+    if (body.phone !== undefined) {
+        const phone = cleanText(body.phone, 30);
+        if (phone && !/^\+?[0-9][0-9\s-]{5,24}$/.test(phone)) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid phone number.' });
+        }
+        student.phone = phone;
+    }
+    if (body.active !== undefined) student.active = Boolean(body.active);
+    if (body.password) {
+        if (!isValidPassword(body.password)) {
+            return res.status(400).json({ success: false, message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters.` });
+        }
+        student.password = body.password; // hashed on save; signs the student out everywhere
+    }
+    await student.save();
+    const { _id, name, email, phone, active, createdAt } = student;
+    res.json({ _id, name, email, phone, active: active !== false, createdAt });
+});
+
+// ---------------------------------------------------------------------------
+// Consultation / free trial requests
+// ---------------------------------------------------------------------------
+
+router.get('/consultations', async (req, res) => {
+    res.json(await Consultation.find().sort({ createdAt: -1 }).limit(1000).lean());
+});
+
+router.put('/consultations/:id', async (req, res) => {
+    const body = req.body || {};
+    const update = {};
+    if (body.status !== undefined) {
+        if (!CONSULTATION_STATUSES.includes(body.status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status.' });
+        }
+        update.status = body.status;
+    }
+    if (body.notes !== undefined) update.notes = cleanText(body.notes, 1000);
+    const item = await Consultation.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true }).lean();
+    if (!item) return res.status(404).json({ success: false, message: 'Request not found.' });
+    res.json(item);
+});
+
+router.delete('/consultations/:id', async (req, res) => {
+    const item = await Consultation.findByIdAndDelete(req.params.id);
+    if (!item) return res.status(404).json({ success: false, message: 'Request not found.' });
+    res.json({ success: true });
+});
+
+// ---------------------------------------------------------------------------
+// Site settings (contact numbers, payment accounts, social links)
+// ---------------------------------------------------------------------------
+
+router.get('/settings', async (req, res) => {
+    res.json(await Setting.getSite());
+});
+
+router.put('/settings', async (req, res) => {
+    const body = req.body || {};
+    const update = { updatedAt: new Date() };
+    for (const [field, max] of Object.entries(SETTING_FIELDS)) {
+        if (body[field] === undefined) continue;
+        const value = cleanText(body[field], max);
+        if (value && SOCIAL_FIELDS.includes(field) && !isHttpUrl(value)) {
+            return res.status(400).json({ success: false, message: 'Social media links must start with https://' });
+        }
+        if (value && field === 'email' && !isValidEmail(value.toLowerCase())) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+        }
+        if (value && ['whatsapp', 'phone', 'vodafoneCash'].includes(field) && !/^\+?[0-9][0-9\s-]{5,24}$/.test(value)) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid phone number.' });
+        }
+        update[field] = field === 'email' ? value.toLowerCase() : value;
+    }
+    await Setting.findOneAndUpdate({ key: 'site' }, { $set: update }, { upsert: true, runValidators: true });
+    res.json(await Setting.getSite());
 });
 
 export default router;

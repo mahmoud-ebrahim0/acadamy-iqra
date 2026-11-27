@@ -2,7 +2,8 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { useLang } from '../../i18n/lang';
 import { useSiteContent } from '../../utils/useSiteContent';
-import { pagesContent, WHATSAPP_NUMBER } from '../../i18n/pagesContent';
+import { pagesContent } from '../../i18n/pagesContent';
+import { useSiteSettings, whatsappDigits } from '../../utils/useSiteSettings';
 
 /**
  * Content page (About, Terms, Privacy, Refund). `page` is the page slug.
@@ -10,6 +11,7 @@ import { pagesContent, WHATSAPP_NUMBER } from '../../i18n/pagesContent';
  */
 const InfoPage = ({ page }) => {
   const { lang } = useLang();
+  const settings = useSiteSettings();
   const defaults = pagesContent[lang] || pagesContent.en;
   const { ready, data } = useSiteContent(page, { en: pagesContent.en[page], ar: pagesContent.ar[page] });
 
@@ -37,7 +39,7 @@ const InfoPage = ({ page }) => {
         <div style={{ textAlign: 'center', marginTop: '3rem', padding: '2rem', background: 'var(--bg-secondary)', borderRadius: '1rem' }}>
           <h3 style={{ color: 'var(--primary-color)', fontSize: '1.4rem', marginBottom: '0.5rem' }}>{defaults.contactTitle}</h3>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.2rem' }}>{defaults.contactText}</p>
-          <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: '#25D366', color: '#fff', padding: '0.8rem 2rem', borderRadius: '999px', textDecoration: 'none', fontWeight: 700 }}>
+          <a href={`https://wa.me/${whatsappDigits(settings)}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ background: '#25D366', color: '#fff', padding: '0.8rem 2rem', borderRadius: '999px', textDecoration: 'none', fontWeight: 700 }}>
             {defaults.contactButton}
           </a>
         </div>

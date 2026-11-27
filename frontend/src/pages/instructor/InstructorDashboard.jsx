@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchWithAuth, readJson } from '../../utils/api';
 import { clearSession, getUserName } from '../../utils/auth';
 import { useLang } from '../../i18n/lang';
 import { cardStyle, lightInputStyle } from '../../utils/styles';
 import LangToggle from '../../components/LangToggle';
+import NotificationBell from '../../components/NotificationBell';
 import AccountProfileCard from '../../components/AccountProfileCard';
 import SecurityCard from '../../components/SecurityCard';
 import AttendancePage from './AttendancePage';
@@ -68,6 +69,7 @@ const InstructorDashboard = () => {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [students, setStudents] = useState([]);
   const [payouts, setPayouts] = useState([]);
@@ -131,6 +133,17 @@ const InstructorDashboard = () => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data from the API on mount
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  // A notification link like /instructor?tab=wallet opens that tab with fresh data.
+  const tabParam = searchParams.get('tab');
+  useEffect(() => {
+    if (!tabParam) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opens the tab requested by a notification link
+    setActiveTab(tabParam);
+    setStudentViewId(null);
+    fetchDashboardData();
+    setSearchParams({}, { replace: true });
+  }, [tabParam, fetchDashboardData, setSearchParams]);
 
   const flashRow = (id, state) => {
     setRowStatus(prev => ({ ...prev, [id]: state }));
@@ -581,7 +594,10 @@ const InstructorDashboard = () => {
             ? <>{t('instructor.brandRest')} <span>{t('instructor.brandHighlight')}</span></>
             : <><span>{t('instructor.brandHighlight')}</span> {t('instructor.brandRest')}</>}
         </div>
-        <LangToggle className="lang-switch-dark" style={{ marginBottom: '1.2rem', marginInlineStart: '1rem', alignSelf: 'flex-start' }} />
+        <div className="sb-tools" style={{ marginBottom: '1.2rem', marginInlineStart: '1rem' }}>
+          <LangToggle className="lang-switch-dark" />
+          <NotificationBell />
+        </div>
         <div className="instructor-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
           {TAB_GROUPS.map(group => (
             <div key={group.key} className="sidebar-group">

@@ -15,6 +15,9 @@ import { FRONTEND_URL } from '../config/env.js';
 import { optionalAuth } from '../middleware/authMiddleware.js';
 import { authLimiter, checkoutLimiter, formLimiter } from '../middleware/rateLimit.js';
 import { authResponse } from '../utils/token.js';
+import Consultation from '../models/Consultation.js';
+import Setting from '../models/Setting.js';
+import { notify, notifyAdmins } from '../utils/notify.js';
 import {
     cleanText,
     escapeHtml,
@@ -67,6 +70,12 @@ router.get('/pages/:slug', async (req, res) => {
 });
 
 // Live numbers for the home page, counted from the database.
+// Contact numbers, payment accounts and social links (edited from the admin Settings page).
+router.get('/settings', async (req, res) => {
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json(await Setting.getSite());
+});
+
 router.get('/stats', async (req, res) => {
     const [students, instructors, courses, classesAttended] = await Promise.all([
         User.countDocuments({ role: 'student' }),
@@ -119,6 +128,9 @@ router.post('/login', authLimiter, async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.matchPassword(body.password))) {
         return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+    }
+    if (user.active === false) {
+        return res.status(403).json({ success: false, message: 'This account has been suspended. Please contact the academy.' });
     }
 
     res.json(authResponse(user));
@@ -224,6 +236,9 @@ const resolveCheckoutUser = async (req, body) => {
 
     const existing = await User.findOne({ email }).select('+password');
     if (existing) {
+        if (existing.active === false) {
+            return { status: 403, message: 'This account has been suspended. Please contact the academy.' };
+        }
         if (!(await existing.matchPassword(body.password))) {
             return {
                 status: 401,
@@ -298,6 +313,8 @@ router.post('/checkout', checkoutLimiter, optionalAuth, upload.single('screensho
     });
     if (isFree || isCard) discardUpload(req.file);
     await enrollment.save();
+    // Card payments notify the admin once Stripe confirms them (stripeWebhook.js).
+    if (!isCard) await notifyAdmins('newEnrollment', { student: user.name, course: course.title }, '/admin');
 
     if (!isCard) {
         return res.status(201).json(authResponse(user));
@@ -352,10 +369,13 @@ router.post('/consultation', formLimiter, async (req, res) => {
         return res.status(400).json({ success: false, message: 'Please enter a valid WhatsApp number.' });
     }
 
+    // Saved first, so the request reaches the admin page even if the email fails.
+    await Consultation.create({ name, age, whatsapp });
+    await notifyAdmins('newConsultation', { name }, '/admin/consultations');
+
     const { ADMIN_EMAIL } = process.env;
     if (!isMailConfigured() || !ADMIN_EMAIL) {
-        console.error('Consultation email is not configured (EMAIL_USER / EMAIL_PASS / ADMIN_EMAIL).');
-        return res.status(503).json({ success: false, message: 'This service is temporarily unavailable. Please contact us on WhatsApp.' });
+        return res.status(200).json({ success: true, message: 'Consultation request sent successfully.' });
     }
 
     const safeName = escapeHtml(name);
@@ -395,8 +415,9 @@ router.post('/consultation', formLimiter, async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Consultation request sent successfully.' });
     } catch (err) {
+        // The request is already saved – the admin sees it on the Consultations page.
         console.error('Email sending error:', err.message);
-        res.status(502).json({ success: false, message: 'We could not send your request right now. Please try again or contact us on WhatsApp.' });
+        res.status(200).json({ success: true, message: 'Consultation request sent successfully.' });
     }
 });
 

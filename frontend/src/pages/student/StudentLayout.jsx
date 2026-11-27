@@ -5,6 +5,7 @@ import { clearSession, getUserName, SESSION_EVENT } from '../../utils/auth';
 import { useLang } from '../../i18n/lang';
 import LangToggle from '../../components/LangToggle';
 import NavIcon from '../../components/NavIcon';
+import NotificationBell from '../../components/NotificationBell';
 import logo from '../../assets/tarteel-logo-maroon.png';
 
 // Sidebar sections and their pages (paths are relative to /dashboard).
@@ -41,10 +42,11 @@ const StudentLayout = () => {
     }
   }, []);
 
+  // Load on open, and again on every page change so new courses / teachers / reports show up.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads the student's data from the API
     reload();
-  }, [reload]);
+  }, [reload, location.key]);
 
   // Re-render when the name changes (profile page).
   useEffect(() => {
@@ -76,7 +78,10 @@ const StudentLayout = () => {
           </span>
         </div>
 
-        <LangToggle className="lang-switch-dark ps-lang" />
+        <div className="sb-tools ps-lang">
+          <LangToggle className="lang-switch-dark" />
+          <NotificationBell />
+        </div>
 
         {/* Navigation */}
         <nav className="instructor-nav ps-nav" aria-label={t('portal.role')}>

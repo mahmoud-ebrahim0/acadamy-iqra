@@ -6,17 +6,19 @@ import { useCourse, formatPrice } from '../../utils/useCourse';
 import { CourseStatusMessage } from './CourseDetails';
 import { useLang } from '../../i18n/lang';
 import LangToggle from '../../components/LangToggle';
-
-const PAYMENT_ACCOUNTS = {
-  'Vodafone Cash': import.meta.env.VITE_VODAFONE_CASH_NUMBER || '01012345678',
-  InstaPay: import.meta.env.VITE_INSTAPAY_ADDRESS || 'tarteel_academy@instapay',
-};
+import { useSiteSettings, whatsappDigits } from '../../utils/useSiteSettings';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { course, status } = useCourse();
   const { t } = useLang();
+  // Payment accounts come from the admin Settings page (env values are only a fallback).
+  const settings = useSiteSettings();
+  const paymentAccounts = {
+    'Vodafone Cash': settings.vodafoneCash || import.meta.env.VITE_VODAFONE_CASH_NUMBER || '',
+    InstaPay: settings.instapay || import.meta.env.VITE_INSTAPAY_ADDRESS || '',
+  };
 
   // A logged-in student enrolls with their existing account (no need to retype details).
   const token = getToken();
@@ -234,11 +236,18 @@ const Checkout = () => {
                 <p style={{ color: 'var(--text-color)', marginBottom: '1rem', fontSize: '0.95rem' }}>
                   {t('checkout.transferTo', { price: formatPrice(course.price, t('courses.free')), method: t(`checkout.method.${paymentMethod}`) })}
                 </p>
-                <div style={{ background: 'var(--primary-color)', padding: '1rem', borderRadius: '0.8rem', textAlign: 'center', marginBottom: '1.5rem' }}>
-                  <span dir="ltr" style={{ fontSize: '1.5rem', color: 'white', letterSpacing: '2px', fontFamily: 'monospace' }}>
-                    {PAYMENT_ACCOUNTS[paymentMethod]}
-                  </span>
-                </div>
+                {paymentAccounts[paymentMethod] ? (
+                  <div style={{ background: 'var(--primary-color)', padding: '1rem', borderRadius: '0.8rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <span dir="ltr" style={{ fontSize: '1.5rem', color: 'white', letterSpacing: '2px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                      {paymentAccounts[paymentMethod]}
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(37, 211, 102, 0.1)', border: '1px solid rgba(37, 211, 102, 0.4)', padding: '1rem', borderRadius: '0.8rem', textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <p style={{ margin: '0 0 0.6rem', color: 'var(--text-color)' }}>{t('checkout.accountOnWhatsapp')}</p>
+                    <a href={`https://wa.me/${whatsappDigits(settings)}`} target="_blank" rel="noopener noreferrer" style={{ color: '#128C7E', fontWeight: 700 }}>💬 {t('checkout.askOnWhatsapp')}</a>
+                  </div>
+                )}
                 
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ color: 'var(--text-color)', fontSize: '0.9rem' }}>{t('checkout.uploadScreenshot')}</label>

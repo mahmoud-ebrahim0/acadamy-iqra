@@ -25,6 +25,9 @@ import { ForgotPasswordPage, ResetPasswordPage } from './pages/client/PasswordRe
 import ManagePayouts from './pages/admin/ManagePayouts';
 import ManagePages from './pages/admin/ManagePages';
 import InstructorActivity from './pages/admin/InstructorActivity';
+import ManageStudents from './pages/admin/ManageStudents';
+import ManageConsultations from './pages/admin/ManageConsultations';
+import SiteSettings from './pages/admin/SiteSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import LangProvider from './i18n/LangProvider';
 import ScrollToTop from './components/ScrollToTop';
@@ -49,6 +52,9 @@ function App() {
             <Route path="instructors/:id" element={<InstructorActivity />} />
             <Route path="payouts" element={<ManagePayouts />} />
             <Route path="pages" element={<ManagePages />} />
+            <Route path="students" element={<ManageStudents />} />
+            <Route path="consultations" element={<ManageConsultations />} />
+            <Route path="settings" element={<SiteSettings />} />
             {/* Fallback for other admin routes for now */}
             <Route path="*" element={<DashboardOverview />} />
           </Route>

@@ -10,11 +10,13 @@ import StarsOfTarteelSection from '../../components/StarsOfTarteelSection';
 import FAQSection from '../../components/FAQSection';
 import TestimonialsSection from '../../components/TestimonialsSection';
 import Footer from '../../components/Footer';
+import { useSiteSettings, whatsappDigits } from '../../utils/useSiteSettings';
 import ConsultationModal from '../../components/ConsultationModal';
 import DailyInspiration from '../../components/DailyInspiration';
 import { useLang } from '../../i18n/lang';
 const ClientHome = () => {
   const { t } = useLang();
+  const settings = useSiteSettings();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -47,7 +49,7 @@ const ClientHome = () => {
 
       {/* WhatsApp Floating Button */}
       <a 
-        href="https://wa.me/201011927852" 
+        href={`https://wa.me/${whatsappDigits(settings)}`} 
         className="whatsapp-float" 
         target="_blank" 
         rel="noopener noreferrer"

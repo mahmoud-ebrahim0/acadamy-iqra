@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
 import Instructor from '../models/Instructor.js';
+import Notification from '../models/Notification.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import { authResponse } from '../utils/token.js';
@@ -87,6 +88,30 @@ router.put('/password', authLimiter, async (req, res) => {
     user.password = newPassword;
     await user.save();
     res.json({ ...authResponse(user), message: 'Password changed successfully.' });
+});
+
+// ---------------------------------------------------------------------------
+// Notifications (bell icon)
+// ---------------------------------------------------------------------------
+
+// Latest notifications and the number of unread ones.
+router.get('/notifications', async (req, res) => {
+    const [items, unread] = await Promise.all([
+        Notification.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(30).lean(),
+        Notification.countDocuments({ user: req.user._id, read: false }),
+    ]);
+    res.json({ items, unread });
+});
+
+router.put('/notifications/read-all', async (req, res) => {
+    await Notification.updateMany({ user: req.user._id, read: false }, { read: true });
+    res.json({ success: true });
+});
+
+router.put('/notifications/:id/read', async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: 'Invalid ID.' });
+    await Notification.updateOne({ _id: req.params.id, user: req.user._id }, { read: true });
+    res.json({ success: true });
 });
 
 export default router;

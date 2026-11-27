@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { clearSession } from '../../utils/auth';
 import { useAdminLang } from '../../i18n/lang';
+import NotificationBell from '../../components/NotificationBell';
 
 const AdminLayout = () => {
   const location = useLocation();
@@ -24,16 +25,22 @@ const AdminLayout = () => {
             : <><span>{t('brand.highlight')}</span> {t('brand.rest')}</>}
         </Link>
 
-        <button type="button" onClick={toggleLang} className="admin-lang-toggle" aria-label="Switch language">
-          🌐 {t('lang.switch')}
-        </button>
+        <div className="sb-tools">
+          <button type="button" onClick={toggleLang} className="admin-lang-toggle" aria-label={t('lang.switch')}>
+            🌐 {t('lang.switch')}
+          </button>
+          <NotificationBell />
+        </div>
 
         <div className="admin-nav">
           <Link to="/admin" className={isActive('/admin')}>{t('nav.overview')}</Link>
+          <Link to="/admin/students" className={isActive('/admin/students')}>{t('nav.students')}</Link>
+          <Link to="/admin/consultations" className={isActive('/admin/consultations')}>{t('nav.consultations')}</Link>
           <Link to="/admin/courses" className={isActive('/admin/courses')}>{t('nav.courses')}</Link>
           <Link to="/admin/instructors" className={isActive('/admin/instructors')}>{t('nav.instructors')}</Link>
           <Link to="/admin/payouts" className={isActive('/admin/payouts')}>{t('nav.payouts')}</Link>
           <Link to="/admin/pages" className={isActive('/admin/pages')}>{t('nav.pages')}</Link>
+          <Link to="/admin/settings" className={isActive('/admin/settings')}>{t('nav.settings')}</Link>
 
           <button onClick={handleLogout} className="admin-nav-logout">{t('nav.logout')}</button>
         </div>

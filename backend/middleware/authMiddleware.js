@@ -12,7 +12,7 @@ const loadUserFromToken = async (token) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.id);
         // Tokens from before a password change are no longer valid.
-        if (!user || user.tokenIssuedBeforePasswordChange(decoded.iat)) return null;
+        if (!user || user.active === false || user.tokenIssuedBeforePasswordChange(decoded.iat)) return null;
         return user;
     } catch {
         return null;

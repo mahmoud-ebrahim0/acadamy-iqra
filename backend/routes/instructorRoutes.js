@@ -6,6 +6,7 @@ import Enrollment from '../models/Enrollment.js';
 import Payout from '../models/Payout.js';
 import Instructor from '../models/Instructor.js';
 import { upload, fileUrl, discardUpload } from '../config/cloudinary.js';
+import { notify, notifyAdmins } from '../utils/notify.js';
 import { protect, instructorOnly, authorize } from '../middleware/authMiddleware.js';
 import { cleanText, isHttpUrl, isValidObjectId, validateIdParam } from '../utils/validation.js';
 
@@ -230,11 +231,13 @@ router.put('/reports/:enrollmentId/:date', authorize('instructor'), async (req, 
         return res.status(400).json({ success: false, message: 'The report is empty.' });
     }
 
+    const isNew = !(await ClassReport.exists({ enrollment: enrollment._id, date }));
     const report = await ClassReport.findOneAndUpdate(
         { enrollment: enrollment._id, date },
         { enrollment: enrollment._id, date, instructor: req.user._id, student: enrollment.student, recited, homework, notes, memorization, tajweed },
         { upsert: true, new: true, runValidators: true }
     ).select(REPORT_FIELDS).lean();
+    if (isNew) await notify(enrollment.student, 'newReport', { instructor: req.user.name, date }, '/dashboard/reports');
     res.json(report);
 });
 
@@ -295,11 +298,15 @@ router.put('/schedule/:enrollmentId', async (req, res) => {
         return res.status(400).json({ success: false, message: 'The class link must start with https://' });
     }
 
+    const changed = String(enrollment.scheduleDays) !== String(uniqueDays)
+        || enrollment.scheduleClock !== (uniqueDays.length ? time : '')
+        || (enrollment.zoomLink || '') !== link;
     enrollment.scheduleDays = uniqueDays;
     enrollment.scheduleClock = uniqueDays.length ? time : '';
     enrollment.scheduleTime = ''; // the structured schedule replaces any old free-text time
     enrollment.zoomLink = link;
     await enrollment.save();
+    if (changed) await notify(enrollment.student, 'scheduleUpdated', { instructor: req.user.name }, '/dashboard/courses');
     res.json({ _id: enrollment._id, scheduleDays: enrollment.scheduleDays, scheduleClock: enrollment.scheduleClock, scheduleTime: '', zoomLink: enrollment.zoomLink });
 });
 
@@ -369,6 +376,7 @@ router.post('/payouts', authorize('instructor'), async (req, res) => {
         status: 'Pending',
         date: new Date().toISOString().split('T')[0],
     });
+    await notifyAdmins('newPayoutRequest', { instructor: req.user.name, amount: payout.amount }, '/admin/payouts');
     res.status(201).json(payout);
 });
 

@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['student', 'admin', 'instructor'], default: 'student' },
     // Contact number (WhatsApp) the user can edit from their profile.
     phone: { type: String, trim: true, maxlength: 30, default: '' },
+    // A suspended account (set by the admin) cannot log in or use the site.
+    active: { type: Boolean, default: true },
     // Login tokens issued before this moment are rejected (set when the password changes).
     passwordChangedAt: { type: Date },
     // Forgot-password flow: only a hash of the emailed token is stored.
