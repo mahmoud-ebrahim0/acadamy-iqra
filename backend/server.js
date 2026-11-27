@@ -37,8 +37,10 @@ app.get('/', (req, res) => {
 });
 
 // Fail fast with a clear message instead of hanging when the database is down.
-app.use('/api', (req, res, next) => {
-    if (mongoose.connection.readyState === 0) {
+// If the database isn't connected (e.g. the first attempt failed), try again before giving up.
+app.use('/api', async (req, res, next) => {
+    if (mongoose.connection.readyState !== 1) await connectDB();
+    if (mongoose.connection.readyState !== 1) {
         return res.status(503).json({ success: false, message: 'The service is temporarily unavailable. Please try again shortly.' });
     }
     next();
@@ -80,17 +82,28 @@ app.use((err, req, res, next) => {
     });
 });
 
-const connectDB = async () => {
-    try {
-        const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/quran_academy', {
-            serverSelectionTimeoutMS: 10000,
-        });
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-        console.error(`Database Connection Error: ${error.message}`);
-        console.warn('Server is running without Database connection. Please ensure MongoDB is running.');
+// One shared connection attempt at a time; after a failure the next request tries again.
+let connecting = null;
+async function connectDB() {
+    if (mongoose.connection.readyState === 1) return;
+    if (!connecting) {
+        connecting = (async () => {
+            try {
+                // A failed attempt can leave a half-open connection behind – reset it first.
+                if (mongoose.connection.readyState !== 0) await mongoose.disconnect().catch(() => {});
+                const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/quran_academy', {
+                    serverSelectionTimeoutMS: 8000,
+                });
+                console.log(`MongoDB Connected: ${conn.connection.host}`);
+            } catch (error) {
+                console.error(`Database Connection Error: ${error.message}`);
+            } finally {
+                connecting = null;
+            }
+        })();
     }
-};
+    await connecting;
+}
 
 connectDB();
 
