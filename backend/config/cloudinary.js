@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
+import { put, del } from '@vercel/blob';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -21,9 +22,35 @@ const isCloudinaryConfigured = Boolean(
     process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
 );
 
+// Vercel Blob: file storage built into Vercel (token added automatically when a Blob store is connected).
+const isBlobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+
 let storage;
 
-if (isCloudinaryConfigured) {
+if (isBlobConfigured) {
+    // Multer storage engine that buffers the (max 5 MB) image and uploads it to Vercel Blob.
+    storage = {
+        _handleFile(req, file, cb) {
+            const chunks = [];
+            file.stream.on('data', (c) => chunks.push(c));
+            file.stream.on('error', cb);
+            file.stream.on('end', async () => {
+                try {
+                    const body = Buffer.concat(chunks);
+                    const name = `academy_iqra/${crypto.randomUUID()}${ALLOWED_TYPES[file.mimetype]}`;
+                    const blob = await put(name, body, { access: 'public', contentType: file.mimetype });
+                    cb(null, { path: blob.url, filename: blob.url, size: body.length, blob: true });
+                } catch (err) {
+                    cb(err);
+                }
+            });
+        },
+        _removeFile(req, file, cb) {
+            del(file.path).then(() => cb(null), () => cb(null));
+        },
+    };
+    console.log('Vercel Blob configured for uploads.');
+} else if (isCloudinaryConfigured) {
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
@@ -66,7 +93,7 @@ if (isCloudinaryConfigured) {
     });
 
     if (isProduction) {
-        console.warn('[uploads] Cloudinary is not configured – files are stored on local disk and will be lost on redeploy.');
+        console.warn('[uploads] No cloud storage (Vercel Blob or Cloudinary) is configured – files are stored on local disk and will be lost on redeploy.');
     } else {
         console.log(`Using local disk storage for uploads at ${uploadDir}`);
     }
@@ -93,6 +120,10 @@ export const fileUrl = (req, file) => {
 
 /** Deletes a locally stored upload (used when a request fails after the file was saved). */
 export const discardUpload = (file) => {
+    if (file?.blob && file.path) {
+        del(file.path).catch(() => {});
+        return;
+    }
     if (file?.filename && file.path && !/^https?:\/\//.test(file.path)) {
         fs.promises.unlink(file.path).catch(() => {});
     }
